@@ -1,1 +1,1 @@
-/usr/bin/c++  -g -rdynamic CMakeFiles/orbit_simulator.dir/src/draw2.cpp.o CMakeFiles/orbit_simulator.dir/src/glad.c.o -o orbit_simulator  -lGL -lglfw -lX11 -lpthread -lXrandr -lXi -ldl 
+/usr/bin/c++  -g -rdynamic CMakeFiles/orbit_simulator.dir/src/draw.cpp.o CMakeFiles/orbit_simulator.dir/src/glad.c.o -o orbit_simulator  -lGL -lglfw -lX11 -lpthread -lXrandr -lXi -ldl 

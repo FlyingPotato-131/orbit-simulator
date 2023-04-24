@@ -69,19 +69,19 @@ include CMakeFiles/orbit_simulator.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/orbit_simulator.dir/flags.make
 
-CMakeFiles/orbit_simulator.dir/src/draw2.cpp.o: CMakeFiles/orbit_simulator.dir/flags.make
-CMakeFiles/orbit_simulator.dir/src/draw2.cpp.o: /home/flyingpotato_131/repositories/orbit-simulator/src/draw2.cpp
-CMakeFiles/orbit_simulator.dir/src/draw2.cpp.o: CMakeFiles/orbit_simulator.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/flyingpotato_131/repositories/orbit-simulator/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/orbit_simulator.dir/src/draw2.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/orbit_simulator.dir/src/draw2.cpp.o -MF CMakeFiles/orbit_simulator.dir/src/draw2.cpp.o.d -o CMakeFiles/orbit_simulator.dir/src/draw2.cpp.o -c /home/flyingpotato_131/repositories/orbit-simulator/src/draw2.cpp
+CMakeFiles/orbit_simulator.dir/src/draw.cpp.o: CMakeFiles/orbit_simulator.dir/flags.make
+CMakeFiles/orbit_simulator.dir/src/draw.cpp.o: /home/flyingpotato_131/repositories/orbit-simulator/src/draw.cpp
+CMakeFiles/orbit_simulator.dir/src/draw.cpp.o: CMakeFiles/orbit_simulator.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/flyingpotato_131/repositories/orbit-simulator/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/orbit_simulator.dir/src/draw.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/orbit_simulator.dir/src/draw.cpp.o -MF CMakeFiles/orbit_simulator.dir/src/draw.cpp.o.d -o CMakeFiles/orbit_simulator.dir/src/draw.cpp.o -c /home/flyingpotato_131/repositories/orbit-simulator/src/draw.cpp
 
-CMakeFiles/orbit_simulator.dir/src/draw2.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/orbit_simulator.dir/src/draw2.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/flyingpotato_131/repositories/orbit-simulator/src/draw2.cpp > CMakeFiles/orbit_simulator.dir/src/draw2.cpp.i
+CMakeFiles/orbit_simulator.dir/src/draw.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/orbit_simulator.dir/src/draw.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/flyingpotato_131/repositories/orbit-simulator/src/draw.cpp > CMakeFiles/orbit_simulator.dir/src/draw.cpp.i
 
-CMakeFiles/orbit_simulator.dir/src/draw2.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/orbit_simulator.dir/src/draw2.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/flyingpotato_131/repositories/orbit-simulator/src/draw2.cpp -o CMakeFiles/orbit_simulator.dir/src/draw2.cpp.s
+CMakeFiles/orbit_simulator.dir/src/draw.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/orbit_simulator.dir/src/draw.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/flyingpotato_131/repositories/orbit-simulator/src/draw.cpp -o CMakeFiles/orbit_simulator.dir/src/draw.cpp.s
 
 CMakeFiles/orbit_simulator.dir/src/glad.c.o: CMakeFiles/orbit_simulator.dir/flags.make
 CMakeFiles/orbit_simulator.dir/src/glad.c.o: /home/flyingpotato_131/repositories/orbit-simulator/src/glad.c
@@ -99,13 +99,13 @@ CMakeFiles/orbit_simulator.dir/src/glad.c.s: cmake_force
 
 # Object files for target orbit_simulator
 orbit_simulator_OBJECTS = \
-"CMakeFiles/orbit_simulator.dir/src/draw2.cpp.o" \
+"CMakeFiles/orbit_simulator.dir/src/draw.cpp.o" \
 "CMakeFiles/orbit_simulator.dir/src/glad.c.o"
 
 # External object files for target orbit_simulator
 orbit_simulator_EXTERNAL_OBJECTS =
 
-orbit_simulator: CMakeFiles/orbit_simulator.dir/src/draw2.cpp.o
+orbit_simulator: CMakeFiles/orbit_simulator.dir/src/draw.cpp.o
 orbit_simulator: CMakeFiles/orbit_simulator.dir/src/glad.c.o
 orbit_simulator: CMakeFiles/orbit_simulator.dir/build.make
 orbit_simulator: CMakeFiles/orbit_simulator.dir/link.txt

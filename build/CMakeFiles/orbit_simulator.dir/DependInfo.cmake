@@ -9,7 +9,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/flyingpotato_131/repositories/orbit-simulator/src/glad.c" "CMakeFiles/orbit_simulator.dir/src/glad.c.o" "gcc" "CMakeFiles/orbit_simulator.dir/src/glad.c.o.d"
-  "/home/flyingpotato_131/repositories/orbit-simulator/src/draw2.cpp" "CMakeFiles/orbit_simulator.dir/src/draw2.cpp.o" "gcc" "CMakeFiles/orbit_simulator.dir/src/draw2.cpp.o.d"
+  "/home/flyingpotato_131/repositories/orbit-simulator/src/draw.cpp" "CMakeFiles/orbit_simulator.dir/src/draw.cpp.o" "gcc" "CMakeFiles/orbit_simulator.dir/src/draw.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

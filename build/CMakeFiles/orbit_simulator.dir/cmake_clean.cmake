@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/orbit_simulator.dir/src/draw2.cpp.o"
-  "CMakeFiles/orbit_simulator.dir/src/draw2.cpp.o.d"
+  "CMakeFiles/orbit_simulator.dir/src/draw.cpp.o"
+  "CMakeFiles/orbit_simulator.dir/src/draw.cpp.o.d"
   "CMakeFiles/orbit_simulator.dir/src/glad.c.o"
   "CMakeFiles/orbit_simulator.dir/src/glad.c.o.d"
   "orbit_simulator"

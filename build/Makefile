@@ -129,29 +129,29 @@ orbit_simulator/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/orbit_simulator.dir/build.make CMakeFiles/orbit_simulator.dir/build
 .PHONY : orbit_simulator/fast
 
-src/draw2.o: src/draw2.cpp.o
-.PHONY : src/draw2.o
+src/draw.o: src/draw.cpp.o
+.PHONY : src/draw.o
 
 # target to build an object file
-src/draw2.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/orbit_simulator.dir/build.make CMakeFiles/orbit_simulator.dir/src/draw2.cpp.o
-.PHONY : src/draw2.cpp.o
+src/draw.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/orbit_simulator.dir/build.make CMakeFiles/orbit_simulator.dir/src/draw.cpp.o
+.PHONY : src/draw.cpp.o
 
-src/draw2.i: src/draw2.cpp.i
-.PHONY : src/draw2.i
+src/draw.i: src/draw.cpp.i
+.PHONY : src/draw.i
 
 # target to preprocess a source file
-src/draw2.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/orbit_simulator.dir/build.make CMakeFiles/orbit_simulator.dir/src/draw2.cpp.i
-.PHONY : src/draw2.cpp.i
+src/draw.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/orbit_simulator.dir/build.make CMakeFiles/orbit_simulator.dir/src/draw.cpp.i
+.PHONY : src/draw.cpp.i
 
-src/draw2.s: src/draw2.cpp.s
-.PHONY : src/draw2.s
+src/draw.s: src/draw.cpp.s
+.PHONY : src/draw.s
 
 # target to generate assembly for a file
-src/draw2.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/orbit_simulator.dir/build.make CMakeFiles/orbit_simulator.dir/src/draw2.cpp.s
-.PHONY : src/draw2.cpp.s
+src/draw.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/orbit_simulator.dir/build.make CMakeFiles/orbit_simulator.dir/src/draw.cpp.s
+.PHONY : src/draw.cpp.s
 
 src/glad.o: src/glad.c.o
 .PHONY : src/glad.o
@@ -186,9 +186,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... orbit_simulator"
-	@echo "... src/draw2.o"
-	@echo "... src/draw2.i"
-	@echo "... src/draw2.s"
+	@echo "... src/draw.o"
+	@echo "... src/draw.i"
+	@echo "... src/draw.s"
 	@echo "... src/glad.o"
 	@echo "... src/glad.i"
 	@echo "... src/glad.s"
