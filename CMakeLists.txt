@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(orbit_simulator)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -g")
 
 add_executable(${PROJECT_NAME} src/draw.cpp src/glad.c)
 

@@ -12,26 +12,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 	glViewport(0, 0, width, height);
 }
 
-// void processInput(GLFWwindow *window){
-//     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-//         glfwSetWindowShouldClose(window, true);
-// }
-
-// const char *vertexShaderSource = "#version 330 core\n"
-//     "layout (location = 0) in vec3 aPos;\n"
-//     "void main()\n"
-//     "{\n"
-//     "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-//     "}\0";
-// const char *fragShaderSource = "#version 330 core\n"
-//     "out vec4 FragColor;\n"
-//     "void main()\n"
-//     "{\n"
-//     "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-//     "}\n\0";
-
 int main(){
-
 	std::vector<vec3> vertices{
 		{0.5f, 0.5f, 0.0f},
 		{0.5f, -0.5f, 0.0f},
@@ -68,11 +49,11 @@ int main(){
 	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
 
 	std::ifstream vfile("../src/vertex_shader.vert");
-	char *vertexShaderSource = static_cast<char *>(std::malloc(4096 * sizeof(char)));
+	char *vertexShaderSource = static_cast<char *>(std::malloc(16384 * sizeof(char)));
 	// for (int i = 0; i < 4096; ++i){
 	// 	vertexShaderSource[i] = '\0';
 	// }
-	vfile.read(vertexShaderSource, 4096);
+	vfile.read(vertexShaderSource, 16384);
 
 	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
 	glCompileShader(vertexShader);
@@ -89,16 +70,32 @@ int main(){
 	unsigned int fragShader = glCreateShader(GL_FRAGMENT_SHADER);
 
 	std::ifstream ffile("../src/fragment_shader.frag");
-	char *fragShaderSource = static_cast<char *>(std::malloc(4096 * sizeof(char)));
-	ffile.read(fragShaderSource, 4096);
+	char *fragShaderSource = static_cast<char *>(std::malloc(16384 * sizeof(char)));
+	ffile.read(fragShaderSource, 16384);
 
 	glShaderSource(fragShader, 1, &fragShaderSource, NULL);
 	glCompileShader(fragShader);
 
 	glGetShaderiv(fragShader, GL_COMPILE_STATUS, &success);
 	if(!success){
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+		glGetShaderInfoLog(fragShader, 512, NULL, infoLog);
 		std::cout << "ERROR::SHADER::FRAG::COMPILATION_FAILED\n" <<
+		infoLog << std::endl;
+	}
+
+	unsigned int geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+
+	std::ifstream gfile("../src/geometry_shader.geom");
+	char *geometryShaderSource = static_cast<char *>(std::malloc(16384 * sizeof(char)));
+	gfile.read(geometryShaderSource, 16384);	
+
+	glShaderSource(geometryShader, 1, &geometryShaderSource, NULL);
+	glCompileShader(geometryShader);
+
+	glGetShaderiv(geometryShader, GL_COMPILE_STATUS, &success);
+	if(!success){
+		glGetShaderInfoLog(geometryShader, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER::GEOM::COMPILATION_FAILED\n" <<
 		infoLog << std::endl;
 	}
 
@@ -106,6 +103,7 @@ int main(){
 
 	glAttachShader(shaderProgram, vertexShader);
 	glAttachShader(shaderProgram, fragShader);
+	// glAttachShader(shaderProgram, geometryShader);
 	glLinkProgram(shaderProgram);
 
 	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
@@ -147,10 +145,10 @@ int main(){
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	while(!glfwWindowShouldClose(window)){
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 		glUseProgram(shaderProgram);
 		glBindVertexArray(VAO);
