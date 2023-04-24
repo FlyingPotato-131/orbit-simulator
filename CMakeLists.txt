@@ -3,7 +3,7 @@ project(orbit_simulator)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 
-add_executable(${PROJECT_NAME} src/draw2.cpp src/glad.c)
+add_executable(${PROJECT_NAME} src/draw.cpp src/glad.c)
 
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
