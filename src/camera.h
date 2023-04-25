@@ -22,8 +22,8 @@ camera createCamera(glm::vec3 pos, glm::vec3 target, glm::vec3 up = {0.0f, 1.0f,
 	return{
 		target,
 		glm::length(pos - target),
-		asin((pos.y - target.y) / glm::length(pos - target)),
-		asin((pos.x - target.x) / glm::length(pos - target)),
+		float(asin((pos.y - target.y) / glm::length(pos - target))),
+		float(asin((pos.x - target.x) / glm::length(pos - target))),
 		up
 	};
 }
@@ -33,16 +33,22 @@ camera rotateCamera(GLFWwindow *window, camera prev, float deltaTime){
 	const float zoomSpeed = 0.5f * deltaTime;
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS && prev.pitch < 0.49 * pi)
-		prev.pitch = std::fmod(prev.pitch + rotationSpeed, 2 * pi);
+	// if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		prev.pitch = std::fmod(prev.pitch + rotationSpeed, 0.5 * pi);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS && prev.pitch > -0.49 * pi)
-		prev.pitch = std::fmod(prev.pitch - rotationSpeed, 2 * pi);
+	// if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		prev.pitch = std::fmod(prev.pitch - rotationSpeed, 0.5 * pi);
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 		prev.yaw = std::fmod(prev.yaw - rotationSpeed, 2 * pi);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		prev.yaw = std::fmod(prev.yaw + rotationSpeed, 2 * pi);
-	if(glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS)
+	if(glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS && prev.distance > 0.1)
 		prev.distance -= zoomSpeed * prev.distance;
 	if(glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS)
 		prev.distance += zoomSpeed * prev.distance;
+	// if(std::abs(prev.pitch) > 0.5 * pi)
+	// 	prev.up = {0.0f, -1.0f, 0.0f};
+	// if(std::abs(prev.pitch) <= 0.5 * pi)
+	// 	prev.up =  {0.0f, 1.0f, 0.0f};
 	return prev;
 }

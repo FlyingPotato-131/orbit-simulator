@@ -24,41 +24,12 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 float setmixvalue(GLFWwindow *window, float value){
 	if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS && value < 1){
 		value += 0.01;
-		// while(glfwGetKey(window, GLFW_KEY_UP) == GLFW_RELEASE){
-		// 	std::cout << "up" << std::endl;
-		// }
-		// while(true){
-		// 	std::cout << glfwGetKey(window, GLFW_KEY_UP) << std::endl;
-		// 	if(glfwGetKey(window, GLFW_KEY_UP) != GLFW_PRESS)
-		// 		break;
-		// }
 	}
 	if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS && value > 0){
 		value -= 0.01;
-		// while(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_RELEASE){
-		// 	std::cout << "down" << std::endl;
-		// }
 	}
 	return value;
 }
-
-// camera moveCamera(GLFWwindow *window, camera oldview, float deltaTime){
-// 	const float cameraSpeed = 1.5f * deltaTime; // adjust accordingly
-// 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-// 		oldview.pos += cameraSpeed * oldview.front;
-// 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-// 		oldview.pos -= cameraSpeed * oldview.front;
-// 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-// 		oldview.pos -= glm::normalize(glm::cross(oldview.front, oldview.up)) * cameraSpeed;
-// 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-// 		oldview.pos += glm::normalize(glm::cross(oldview.front, oldview.up)) * cameraSpeed;
-// 	return oldview;
-// }
-
-// struct vertex{
-// 	vec3 pos;
-// 	vec2 texCoord;
-// };
 
 int main(){
 
@@ -68,7 +39,7 @@ int main(){
 
 	camera mainview = createCamera(
 		{0.0f, 0.0f, 3.0f},
-		{0.0f, 0.0f, 0.0f},
+		{0.0f, 0.0f, -5.0f},
 		{0.0f, 1.0f, 0.0f}
 	);
 
@@ -161,6 +132,8 @@ int main(){
 	}
 	glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    // glfwSetCursorPosCallback(window, mouse_callback);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
 		std::cout << "Failed to initialize GLAD" << std::endl;
@@ -296,7 +269,7 @@ int main(){
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
-		const float radius = 10.0f;
+		// const float radius = 10.0f;
 		// float camX = sin(glfwGetTime()) * radius;
 		// float camZ = cos(glfwGetTime()) * radius;
 		glm::mat4 view;

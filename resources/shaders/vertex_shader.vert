@@ -13,9 +13,13 @@ uniform mat4 projection;
 // uniform float xoffset;
 
 void main(){
+    float far = 2000; 
+    float near = 1;
+
     gl_Position = projection * view * model * vec4(aPos.x, aPos.y, aPos.z, 1.0);
-    // vertexColor = aPos;
-    // vertexColor = aColor;
+    
+    gl_Position.z = 2.0*log(gl_Position.w/near + 1)/log(far/near + 1) - 1; 
+    gl_Position.z *= gl_Position.w;
+
     texCoord = aTexCoord;
-    // vertexColor = vec4(0.5, 0.0, 0.0, 1.0);
 }
