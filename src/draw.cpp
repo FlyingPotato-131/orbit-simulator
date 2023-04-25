@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "camera.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -41,18 +42,6 @@ float setmixvalue(GLFWwindow *window, float value){
 	return value;
 }
 
-// struct camera{
-// 	glm::vec3 pos;
-// 	glm::vec3 front;
-// 	glm::vec3 up;
-// };
-
-struct camera{
-	glm::vec3 pos;
-	glm::vec3 target;
-	glm::vec3 up;
-};
-
 // camera moveCamera(GLFWwindow *window, camera oldview, float deltaTime){
 // 	const float cameraSpeed = 1.5f * deltaTime; // adjust accordingly
 // 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -66,23 +55,6 @@ struct camera{
 // 	return oldview;
 // }
 
-camera rotateCamera(GLFWwindow *window, camera oldview, float deltaTime){
-	const float cameraSpeed = 1.0f * deltaTime;
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS && glm::dot(glm::normalize(oldview.pos - oldview.target), oldview.up) <= 0.999)
-		oldview.pos -= cameraSpeed * glm::length(oldview.pos - oldview.target) *  glm::normalize((oldview.pos - oldview.target) * glm::dot(oldview.up, oldview.pos - oldview.target) - oldview.up * glm::dot(oldview.pos - oldview.target, oldview.pos - oldview.target));
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS && glm::dot(glm::normalize(oldview.pos - oldview.target), oldview.up) >= -0.999)
-		oldview.pos += cameraSpeed * glm::length(oldview.pos - oldview.target) * glm::normalize((oldview.pos - oldview.target) * glm::dot(oldview.up, oldview.pos - oldview.target) - oldview.up * glm::dot(oldview.pos - oldview.target, oldview.pos - oldview.target));
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		oldview.pos += glm::normalize(glm::cross(oldview.pos - oldview.target, oldview.up)) * length(oldview.pos - oldview.target) * cameraSpeed * glm::length(oldview.pos - oldview.target - oldview.up * glm::dot(oldview.up, oldview.pos - oldview.target)) / glm::length(oldview.pos - oldview.target);
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		oldview.pos -= glm::normalize(glm::cross(oldview.pos - oldview.target, oldview.up)) * length(oldview.pos - oldview.target) * cameraSpeed * glm::length(oldview.pos - oldview.target - oldview.up * glm::dot(oldview.up, oldview.pos - oldview.target)) / glm::length(oldview.pos - oldview.target);
-	if(glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS)
-		oldview.pos -= 0.5f * cameraSpeed * (oldview.pos - oldview.target);
-	if(glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS)
-		oldview.pos += 0.5f * cameraSpeed * (oldview.pos - oldview.target);
-	return oldview;
-}
-
 // struct vertex{
 // 	vec3 pos;
 // 	vec2 texCoord;
@@ -94,11 +66,11 @@ int main(){
 	// glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 	// glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-	camera mainview = {
+	camera mainview = createCamera(
 		{0.0f, 0.0f, 3.0f},
-		{0.0f, 0.0f, -5.0f},
+		{0.0f, 0.0f, 0.0f},
 		{0.0f, 1.0f, 0.0f}
-	};
+	);
 
 	// std::vector<vertex> vertices{
 	// 	{{0.5f, 0.5f, 0.0f}, {1.0f, 1.0f}},
@@ -330,7 +302,8 @@ int main(){
 		glm::mat4 view;
 		// view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
 		// view = glm::lookAt(mainview.pos, mainview.pos + mainview.front, mainview.up);
-		view = glm::lookAt(mainview.pos, mainview.target, mainview.up);
+		// view = glm::lookAt(mainview.pos, mainview.target, mainview.up);
+		view = glm::lookAt(mainview.target + mainview.distance * glm::vec3(cos(mainview.pitch) * sin(mainview.yaw), sin(mainview.pitch), cos(mainview.pitch) * cos(mainview.yaw)), mainview.target, mainview.up);
 
 
 		// setMat4(shaderProgram, "model", model);
