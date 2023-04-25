@@ -4,21 +4,172 @@
 #include <fstream>
 #include <vector>
 #include <vec3.h>
+#include <vec2.h>
+#include "shader.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 const unsigned int windowWidth = 1920;
-const unsigned int windowHeigth = 1080;
+const unsigned int windowHeight = 1080;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 	glViewport(0, 0, width, height);
 }
 
+float setmixvalue(GLFWwindow *window, float value){
+	if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS && value < 1){
+		value += 0.01;
+		// while(glfwGetKey(window, GLFW_KEY_UP) == GLFW_RELEASE){
+		// 	std::cout << "up" << std::endl;
+		// }
+		// while(true){
+		// 	std::cout << glfwGetKey(window, GLFW_KEY_UP) << std::endl;
+		// 	if(glfwGetKey(window, GLFW_KEY_UP) != GLFW_PRESS)
+		// 		break;
+		// }
+	}
+	if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS && value > 0){
+		value -= 0.01;
+		// while(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_RELEASE){
+		// 	std::cout << "down" << std::endl;
+		// }
+	}
+	return value;
+}
+
+// struct camera{
+// 	glm::vec3 pos;
+// 	glm::vec3 front;
+// 	glm::vec3 up;
+// };
+
+struct camera{
+	glm::vec3 pos;
+	glm::vec3 target;
+	glm::vec3 up;
+};
+
+// camera moveCamera(GLFWwindow *window, camera oldview, float deltaTime){
+// 	const float cameraSpeed = 1.5f * deltaTime; // adjust accordingly
+// 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+// 		oldview.pos += cameraSpeed * oldview.front;
+// 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+// 		oldview.pos -= cameraSpeed * oldview.front;
+// 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+// 		oldview.pos -= glm::normalize(glm::cross(oldview.front, oldview.up)) * cameraSpeed;
+// 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+// 		oldview.pos += glm::normalize(glm::cross(oldview.front, oldview.up)) * cameraSpeed;
+// 	return oldview;
+// }
+
+camera rotateCamera(GLFWwindow *window, camera oldview, float deltaTime){
+	const float cameraSpeed = 1.0f * deltaTime;
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS && glm::dot(glm::normalize(oldview.pos - oldview.target), oldview.up) <= 0.999)
+		oldview.pos -= cameraSpeed * glm::length(oldview.pos - oldview.target) *  glm::normalize((oldview.pos - oldview.target) * glm::dot(oldview.up, oldview.pos - oldview.target) - oldview.up * glm::dot(oldview.pos - oldview.target, oldview.pos - oldview.target));
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS && glm::dot(glm::normalize(oldview.pos - oldview.target), oldview.up) >= -0.999)
+		oldview.pos += cameraSpeed * glm::length(oldview.pos - oldview.target) * glm::normalize((oldview.pos - oldview.target) * glm::dot(oldview.up, oldview.pos - oldview.target) - oldview.up * glm::dot(oldview.pos - oldview.target, oldview.pos - oldview.target));
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		oldview.pos += glm::normalize(glm::cross(oldview.pos - oldview.target, oldview.up)) * length(oldview.pos - oldview.target) * cameraSpeed * glm::length(oldview.pos - oldview.target - oldview.up * glm::dot(oldview.up, oldview.pos - oldview.target)) / glm::length(oldview.pos - oldview.target);
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		oldview.pos -= glm::normalize(glm::cross(oldview.pos - oldview.target, oldview.up)) * length(oldview.pos - oldview.target) * cameraSpeed * glm::length(oldview.pos - oldview.target - oldview.up * glm::dot(oldview.up, oldview.pos - oldview.target)) / glm::length(oldview.pos - oldview.target);
+	if(glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS)
+		oldview.pos -= 0.5f * cameraSpeed * (oldview.pos - oldview.target);
+	if(glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS)
+		oldview.pos += 0.5f * cameraSpeed * (oldview.pos - oldview.target);
+	return oldview;
+}
+
+// struct vertex{
+// 	vec3 pos;
+// 	vec2 texCoord;
+// };
+
 int main(){
-	std::vector<vec3> vertices{
-		{0.5f, 0.5f, 0.0f},
-		{0.5f, -0.5f, 0.0f},
-		{-0.5f, -0.5f, 0.0f},
-		{-0.5f, 0.5f, 0.0f}
+
+	// glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+	// glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+	// glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+	camera mainview = {
+		{0.0f, 0.0f, 3.0f},
+		{0.0f, 0.0f, -5.0f},
+		{0.0f, 1.0f, 0.0f}
 	};
+
+	// std::vector<vertex> vertices{
+	// 	{{0.5f, 0.5f, 0.0f}, {1.0f, 1.0f}},
+	// 	{{0.5f, -0.5f, 0.0f}, {1.0f, 0.0f}},
+	// 	{{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f}},
+	// 	{{-0.5f, 0.5f, 0.0f}, {0.0f, 1.0f}}
+	// };
+
+	float vertices[] = {
+		-0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+		0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
+		0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+		0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+		-0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+		-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+		0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+		0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+		0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+		-0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
+		-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+		-0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+		-0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+		-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+		-0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+		0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+		0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+		0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+		0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+		0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
+		0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+		0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+		-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+		-0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
+		0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+		0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+		0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+		-0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
+		-0.5f, 0.5f, -0.5f, 0.0f, 1.0f
+	};
+
+	glm::vec3 cubePositions[] = {
+		glm::vec3( 0.0f, 0.0f, 0.0f),
+		glm::vec3( 2.0f, 5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3( 2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f, 3.0f, -7.5f),
+		glm::vec3( 1.3f, -2.0f, -2.5f),
+		glm::vec3( 1.5f, 2.0f, -2.5f),
+		glm::vec3( 1.5f, 0.2f, -1.5f),
+		glm::vec3(-1.3f, 1.0f, -1.5f)
+	};
+
+	// std::vector<vec3> vertices{
+	// 	{0.0f, 0.5f, 0.0f},
+	// 	{0.5f, -0.5f, 0.0f},
+	// 	{-0.5f, -0.5f, 0.0f}
+	// };
+
+	// std::vector<vec2> texCoords{
+	// 	{0.0f, 0.0f},
+	// 	{1.0f, 0.0f},
+	// 	{0.5f, 1.0f}
+	// };
 
 	unsigned int indices[] = { // note that we start from 0!
 		0, 1, 3, // first triangle
@@ -30,7 +181,7 @@ int main(){
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeigth, "Orbit Simulator", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "Orbit Simulator", NULL, NULL);
 	if (window == NULL){
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
@@ -44,80 +195,10 @@ int main(){
 		return -1;
 	}
 
-	glViewport(0, 0, windowWidth, windowHeigth);
-
-	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-
-	std::ifstream vfile("../src/vertex_shader.vert");
-	char *vertexShaderSource = static_cast<char *>(std::malloc(16384 * sizeof(char)));
-	// for (int i = 0; i < 4096; ++i){
-	// 	vertexShaderSource[i] = '\0';
-	// }
-	vfile.read(vertexShaderSource, 16384);
-
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-
-	int success;
-	char infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if(!success){
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" <<
-		infoLog << std::endl;
-	}
-
-	unsigned int fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-	std::ifstream ffile("../src/fragment_shader.frag");
-	char *fragShaderSource = static_cast<char *>(std::malloc(16384 * sizeof(char)));
-	ffile.read(fragShaderSource, 16384);
-
-	glShaderSource(fragShader, 1, &fragShaderSource, NULL);
-	glCompileShader(fragShader);
-
-	glGetShaderiv(fragShader, GL_COMPILE_STATUS, &success);
-	if(!success){
-		glGetShaderInfoLog(fragShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::FRAG::COMPILATION_FAILED\n" <<
-		infoLog << std::endl;
-	}
-
-	unsigned int geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
-
-	std::ifstream gfile("../src/geometry_shader.geom");
-	char *geometryShaderSource = static_cast<char *>(std::malloc(16384 * sizeof(char)));
-	gfile.read(geometryShaderSource, 16384);	
-
-	glShaderSource(geometryShader, 1, &geometryShaderSource, NULL);
-	glCompileShader(geometryShader);
-
-	glGetShaderiv(geometryShader, GL_COMPILE_STATUS, &success);
-	if(!success){
-		glGetShaderInfoLog(geometryShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::GEOM::COMPILATION_FAILED\n" <<
-		infoLog << std::endl;
-	}
-
-	unsigned int shaderProgram = glCreateProgram();
-
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragShader);
-	// glAttachShader(shaderProgram, geometryShader);
-	glLinkProgram(shaderProgram);
-
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if(!success) {
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::PROGRAM::LINK_FAILED\n" <<
-		infoLog << std::endl;
-	}
-
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragShader);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
+	glViewport(0, 0, windowWidth, windowHeight);
+	unsigned int shaderProgram = loadShaders("../resources/shaders/vertex_shader.vert", "../resources/shaders/fragment_shader.frag");
+	// glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	// glEnableVertexAttribArray(0);
 
 	// unsigned int VAO;
 	// glGenVertexArrays(1, &VAO);
@@ -134,7 +215,8 @@ int main(){
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vec3) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(vertex) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     unsigned int EBO;
     glGenBuffers(1, &EBO);
@@ -142,18 +224,135 @@ int main(){
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) (3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+
+	// stbi_set_flip_vertically_on_load(true);
+
+	int width, height, nrChannels;
+	unsigned char *data = stbi_load("../resources/textures/container.jpg", &width, &height, &nrChannels, 0);
+
+	unsigned int texture1;
+	glGenTextures(1, &texture1);
+
+	glBindTexture(GL_TEXTURE_2D, texture1);
+
+	if (data){
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}else{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+
+	stbi_image_free(data);
+
+	unsigned int texture2;
+	glGenTextures(1, &texture2);
+
+	glBindTexture(GL_TEXTURE_2D, texture2);
+
+	data = stbi_load("../resources/textures/awesomeface.png", &width, &height, &nrChannels, 0);
+	if (data){
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}else{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+
+	stbi_image_free(data);
+
+	glUseProgram(shaderProgram);
+	setInt(shaderProgram, "texture1", 0);
+	setInt(shaderProgram, "texture2", 1);
+
+	float mixvalue = 0.5;
+
+	// glm::mat4 model = glm::mat4(1.0f);
+	// model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+	// glm::mat4 view = glm::mat4(1.0f);
+	// view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+
+	glm::mat4 projection;
+	projection = glm::perspective(glm::radians(45.0f), float(windowWidth) / float(windowHeight), 0.1f, 100.0f);
+
+	glEnable(GL_DEPTH_TEST);
+
+	float deltaTime = 0.0f; // Time between current frame and last frame
+	float lastFrame = 0.0f; // Time of last frame
+
+	float currentFrame = glfwGetTime();
+	deltaTime = currentFrame - lastFrame;
+	lastFrame = currentFrame;
 
 	while(!glfwWindowShouldClose(window)){
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        mainview = rotateCamera(window, mainview, deltaTime);	
+
+		// glm::mat4 trans = glm::mat4(1.0f);
+		// trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+
+		// unsigned int transformLoc = glGetUniformLocation(shaderProgram,"transform");
+		// glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
+		// glm::mat4 model = glm::mat4(1.0f);
+		// model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+		for(unsigned int i = 0; i < 10; i++)
+		{
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, cubePositions[i]);
+			float angle = 20.0f * i;
+			model = glm::rotate(model, glm::radians(angle),
+			glm::vec3(1.0f, 0.3f, 0.5f));
+			// ourShader.setMat4("model", model);
+			setMat4(shaderProgram, "model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
+
+		const float radius = 10.0f;
+		// float camX = sin(glfwGetTime()) * radius;
+		// float camZ = cos(glfwGetTime()) * radius;
+		glm::mat4 view;
+		// view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
+		// view = glm::lookAt(mainview.pos, mainview.pos + mainview.front, mainview.up);
+		view = glm::lookAt(mainview.pos, mainview.target, mainview.up);
+
+
+		// setMat4(shaderProgram, "model", model);
+		setMat4(shaderProgram, "view", view);
+		setMat4(shaderProgram, "projection", projection);
+
+        mixvalue = setmixvalue(window, mixvalue);
+        setFloat(shaderProgram, "mixvalue", mixvalue);
+
+		glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture1);
+        glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+
 		glUseProgram(shaderProgram);
+		// glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+		// glBindTexture(GL_TEXTURE_2D, texture);
+
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
+		// glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		// glDrawArrays(GL_TRIANGLES, 0, 36);
+		// glBindVertexArray(0);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
