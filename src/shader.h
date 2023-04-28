@@ -10,6 +10,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+// #define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 unsigned int loadShaders(const char *vertexPath, const char *fragPath){
 	std::string vertexCode;
 	std::string fragmentCode;
@@ -86,6 +89,31 @@ void setFloat(const unsigned int &program, const std::string &name, float value)
 }
 void setMat4(const unsigned int &program, const std::string &name, glm::mat4 value, bool transpose = false){
 	glUniformMatrix4fv(glGetUniformLocation(program, name.c_str()), 1, transpose ? GL_TRUE : GL_FALSE, glm::value_ptr(value));
+}
+void setVec3(const unsigned int &program, const std::string &name, glm::vec3 value){
+	glUniform3fv(glGetUniformLocation(program, name.c_str()), 1, glm::value_ptr(value));
+}
+void setVec3(const unsigned int &program, const std::string &name, float x, float y, float z){
+	setVec3(program, name, {x, y, z});
+}
+unsigned int loadTexture(const char *path){
+	int width, height, nrChannels;
+	unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0);
+
+	unsigned int texture;
+	glGenTextures(1, &texture);
+
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	if (data){
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}else{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+
+	stbi_image_free(data);
+	return texture;
 }
 
 #endif

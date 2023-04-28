@@ -1,9 +1,12 @@
 #version 330 core
 layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec2 aTexCoord;
+layout (location = 1) in vec3 aNormal;
+layout (location = 2) in vec2 aTexCoords;
 
 // out vec3 vertexColor;
-out vec2 texCoord;
+out vec2 TexCoords;
+out vec3 Normal;
+out vec3 FragPos;
 
 // uniform mat4 transform;
 uniform mat4 model;
@@ -21,5 +24,9 @@ void main(){
     gl_Position.z = 2.0*log(gl_Position.w/near + 1)/log(far/near + 1) - 1; 
     gl_Position.z *= gl_Position.w;
 
-    texCoord = aTexCoord;
+    Normal = aNormal;
+
+    FragPos = vec3(model * vec4(aPos, 1.0));
+
+    TexCoords = aTexCoords;
 }

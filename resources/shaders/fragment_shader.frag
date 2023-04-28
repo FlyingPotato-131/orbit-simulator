@@ -1,47 +1,58 @@
 #version 330 core
-out vec4 FragColor;
 
-in vec2 texCoord;
-
-uniform sampler2D texture1;
-uniform sampler2D texture2;
-uniform float mixvalue;
-
-// uniform vec4 Color;
-
-void main(){
-	FragColor = mix(texture(texture1, texCoord), texture(texture2, vec2(texCoord.x, 1-texCoord.y)), mixvalue);
-}
-
-// #version 330 core
-
-// in vec3 vBC;
-
-// out vec4 fragColor;
-
-// struct Material
-// {
-// 	vec3 colour;
-// 	int useColour;
-// 	float reflectance;
+// struct Material{
+// 	vec3 ambient;
+// 	vec3 diffuse;
+// 	vec3 specular;
+// 	float shininess;
 // };
 
-// uniform vec3 ambientLight;
-// uniform Material material;
+struct Material {
+	sampler2D diffuse;
+	sampler2D specular;
+	float shininess;
+};
 
-// void main()
-// {
-// 	vec4 baseColour = vec4(material.colour, 1.0);
-	
-// 	vec4 black = vec4(0, 0, 0, 0);
-// 	vec4 white = vec4(1, 1, 1, 1);
+struct Light{
+	vec3 position;
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+};
 
-// 	if(any(lessThan(vBC, vec3(0.02)))) {
-// 		fragColor = white;
-// 	}
-// 	else {
-// 		fragColor = black;
-// 	}
+uniform Material material;
+uniform Light light;
 
-// 	vec4 totalLight = vec4(ambientLight, 1.0);
-// }
+in vec3 Normal;
+in vec3 FragPos;
+in vec2 TexCoords;
+
+out vec4 FragColor;
+
+uniform vec3 objectColor;
+uniform vec3 lightColor;
+uniform vec3 lightPos;
+uniform vec3 viewPos;
+
+void main(){
+	// vec3 ambient = lightColor * material.ambient * light.ambient;
+	vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
+
+	// diffuse
+	vec3 norm = normalize(Normal);
+	vec3 lightDir = normalize(lightPos - FragPos);
+	float diff = max(dot(norm, lightDir), 0.0);
+	// vec3 diffuse = lightColor * (diff * material.diffuse) * light.diffuse;
+	vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, TexCoords));
+
+	// specular
+	vec3 viewDir = normalize(viewPos - FragPos);
+	vec3 reflectDir = reflect(-lightDir, norm);
+	float spec = dot(reflectDir, norm) > 0 ? pow(max(dot(viewDir, reflectDir), 0.0), material.shininess) : 0;
+	// float spec = 1 > 0 ? pow(max(dot(viewDir, reflectDir), 0.0), material.shininess) : 0;
+	// vec3 specular = lightColor * (spec * material.specular) * light.specular;
+	vec3 specular = light.specular * spec * vec3(texture(material.specular, TexCoords));
+
+	vec3 result = ambient + diffuse + specular;
+	FragColor = vec4(result, 1.0);	
+}
