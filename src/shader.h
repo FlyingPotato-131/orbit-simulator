@@ -87,6 +87,9 @@ void setInt(const unsigned int &program, const std::string &name, int value){
 void setFloat(const unsigned int &program, const std::string &name, float value){
 	glUniform1f(glGetUniformLocation(program, name.c_str()), value);
 }
+void setMat3(const unsigned int &program, const std::string &name, glm::mat3 value, bool transpose = false){
+	glUniformMatrix3fv(glGetUniformLocation(program, name.c_str()), 1, transpose ? GL_TRUE : GL_FALSE, glm::value_ptr(value));
+}
 void setMat4(const unsigned int &program, const std::string &name, glm::mat4 value, bool transpose = false){
 	glUniformMatrix4fv(glGetUniformLocation(program, name.c_str()), 1, transpose ? GL_TRUE : GL_FALSE, glm::value_ptr(value));
 }
@@ -96,9 +99,11 @@ void setVec3(const unsigned int &program, const std::string &name, glm::vec3 val
 void setVec3(const unsigned int &program, const std::string &name, float x, float y, float z){
 	setVec3(program, name, {x, y, z});
 }
+
 unsigned int loadTexture(const char *path){
 	int width, height, nrChannels;
 	unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0);
+	std::string path_str = path;
 
 	unsigned int texture;
 	glGenTextures(1, &texture);
@@ -106,10 +111,11 @@ unsigned int loadTexture(const char *path){
 	glBindTexture(GL_TEXTURE_2D, texture);
 
 	if (data){
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, path_str.find(".jpg") ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
+		// std::cout << "Loaded texture " << path << std::endl;
 	}else{
-		std::cout << "Failed to load texture" << std::endl;
+		std::cout << "Failed to load texture " << path << std::endl;
 	}
 
 	stbi_image_free(data);

@@ -12,6 +12,7 @@ out vec3 FragPos;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform mat3 normalmtr;
 
 // uniform float xoffset;
 
@@ -24,7 +25,9 @@ void main(){
     gl_Position.z = 2.0*log(gl_Position.w/near + 1)/log(far/near + 1) - 1; 
     gl_Position.z *= gl_Position.w;
 
-    Normal = aNormal;
+    // Normal = vec3(model * vec4(aNormal, 1.0));
+    // Normal = mat3(transpose(inverse(model))) * aNormal;
+    Normal = normalmtr * aNormal;
 
     FragPos = vec3(model * vec4(aPos, 1.0));
 

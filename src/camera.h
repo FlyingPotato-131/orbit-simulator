@@ -37,8 +37,8 @@ camera createCamera(glm::vec3 pos, glm::vec3 target, glm::vec3 up = {0.0f, 1.0f,
 }
 
 camera rotateCamera(GLFWwindow *window, camera prev, float deltaTime){
-	const float rotationSpeed = 0.5f * deltaTime;
-	const float zoomSpeed = 0.5f * deltaTime;
+	const float rotationSpeed = 0.05f * deltaTime;
+	const float zoomSpeed = 0.05f * deltaTime;
 
 	// if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS && prev.pitch < 0.49 * pi)
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
