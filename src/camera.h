@@ -40,14 +40,10 @@ camera rotateCamera(GLFWwindow *window, camera prev, float deltaTime){
 	const float rotationSpeed = 0.05f * deltaTime;
 	const float zoomSpeed = 0.05f * deltaTime;
 
-	// if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS && prev.pitch < 0.49 * pi)
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
 		prev.pitch = prev.pitch + rotationSpeed;
-		// prev.pitch = std::fmod(prev.pitch + rotationSpeed, 0.5 * pi);
-	// if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS && prev.pitch > -0.49 * pi)
 	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		prev.pitch = prev.pitch - rotationSpeed;
-		// prev.pitch = std::fmod(prev.pitch - rotationSpeed, 0.5 * pi);
 	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
 		prev.yaw = std::fmod(prev.yaw - rotationSpeed, 2 * pi);
 	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Space Shuttle Buran
+* source:	https://sketchfab.com/3d-models/space-shuttle-buran-05b1ddcf2cae4d878072886b0fdd0f4c
+* author:	tashtego (https://sketchfab.com/tashtego)
+
+Model License:
+* license type:	CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
+* requirements:	Author must be credited. No commercial use.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Space Shuttle Buran" (https://sketchfab.com/3d-models/space-shuttle-buran-05b1ddcf2cae4d878072886b0fdd0f4c) by tashtego (https://sketchfab.com/tashtego) licensed under CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)

@@ -95,6 +95,7 @@ mesh processMesh(aiMesh *mesh, const aiScene *scene, std::string path){
 
 		std::vector<texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, false, path);
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+		// std::cout << diffuseMaps.size() << std::endl;
 
 		std::vector<texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, true, path);
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());

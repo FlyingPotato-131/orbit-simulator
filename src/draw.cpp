@@ -11,6 +11,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "camera.h"
 #include "model.h"
+#include "cube.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -49,6 +50,8 @@ int main(){
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+	glfwWindowHint(GLFW_SAMPLES, 4);
+
 	GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "Orbit Simulator", NULL, NULL);
 	if (window == NULL){
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -66,12 +69,16 @@ int main(){
 		return -1;
 	}
 
+	glEnable(GL_MULTISAMPLE);
+
 	glViewport(0, 0, windowWidth, windowHeight);
 	unsigned int shaderProgram = loadShaders("../resources/shaders/vertex_shader.vert", "../resources/shaders/fragment_shader.frag");
+	unsigned int skyboxShader = loadShaders("../resources/shaders/skybox.vert", "../resources/shaders/skybox.frag");
 
-	stbi_set_flip_vertically_on_load(true);
+	// stbi_set_flip_vertically_on_load(true);
 
-	model backpack = loadModel("../resources/models/backpack/backpack.obj");
+	model backpack = loadModel("../resources/models/Buran2/buran.obj");
+	// model backpack = loadModel("../resources/models/backpack/backpack.obj");
 	std::cout << "Loaded model" << std::endl;
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -142,16 +149,65 @@ int main(){
 	setFloat(shaderProgram, "light.linear", 0.09f);
 	setFloat(shaderProgram, "light.quadratic", 0.032f);
 
-	// glm::mat4 light = glm::mat4(1.0f);
+	glEnable(GL_CULL_FACE);
 
-	// light = glm::mat4(1.0f);
-	// light = glm::translate(light, lightPos);
-	// light = glm::scale(light, glm::vec3(0.2f));
+	// stbi_set_flip_vertically_on_load(false);
+	stbi_set_flip_vertically_on_load(true);
 
-	// unsigned int lightShader = loadShaders("../resources/shaders/vertex_shader.vert", "../resources/shaders/light_fragment.frag");
+	std::string skyboxPath = "../resources/textures/StarSkybox04NamedConstell/";
 
-	// setInt(shaderProgram, "material.diffuse", 0);
-	// setInt(lightShader, "material.specular", 1);
+	std::vector<std::string> faces{
+		skyboxPath + "StarSkybox044.png",
+		skyboxPath + "StarSkybox043.png",
+		skyboxPath + "StarSkybox045.png",
+		skyboxPath + "StarSkybox046.png",
+		skyboxPath + "StarSkybox041.png",
+		skyboxPath + "StarSkybox042.png"
+	};
+	unsigned int cubemapTexture = loadCubemap(faces);
+
+	// glUseProgram(skyboxShader);
+
+	// unsigned int skyboxVAO;
+	// unsigned int skyboxVBO;
+	// glGenVertexArrays(1, &skyboxVAO);
+	// glGenBuffers(1, &skyboxVBO);
+
+	// glBindVertexArray(skyboxVAO);
+	// glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+	// glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+
+	// glBindVertexArray(skyboxVAO);
+	// glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertexCoords), &cubeVertexCoords[0], GL_STATIC_DRAW);
+
+	// // vertex coords
+	// glEnableVertexAttribArray(0);
+	// glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+
+	// // vertex normals
+	// // glEnableVertexAttribArray(1);
+	// // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)offsetof(vertex, norm));
+
+	// // vertex texture coords
+	// glEnableVertexAttribArray(2);
+	// glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)3);
+	// glBindVertexArray(0);
+
+	unsigned int skyboxVAO, skyboxVBO;
+    glGenVertexArrays(1, &skyboxVAO);
+    glGenBuffers(1, &skyboxVBO);
+
+    glBindVertexArray(skyboxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertexCoords), &cubeVertexCoords, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+	glUseProgram(skyboxShader);
+    setInt(skyboxShader, "skybox", 0);
+
+    // glEnable(GL_PROGRAM_POINT_SIZE);
 
 	while(!glfwWindowShouldClose(window)){
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -177,7 +233,7 @@ int main(){
 		// glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		// model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 		
 
@@ -189,7 +245,6 @@ int main(){
 		// view = glm::lookAt(mainview.pos, mainview.pos + mainview.front, mainview.up);
 		// view = glm::lookAt(mainview.pos, mainview.target, mainview.up);
 		view = glm::lookAt(mainview.target + mainview.distance * cameraPos(mainview), mainview.target, mainview.up);
-
 
 		setMat4(shaderProgram, "model", model);
 		setMat4(shaderProgram, "view", view);
@@ -221,6 +276,30 @@ int main(){
 
 		draw(shaderProgram, backpack);
 
+        // draw skybox as last
+        glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+       	glUseProgram(skyboxShader); 
+
+        view = glm::mat4(glm::mat3(view)); // remove translation from the view matrix
+        setMat4(skyboxShader, "view", view);
+        setMat4(skyboxShader, "projection", projection);
+
+        // skybox cube
+        glBindVertexArray(skyboxVAO);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(0);
+        glDepthFunc(GL_LESS); // set depth function back to default
+
+		// glDepthMask(GL_FALSE);
+		// glUseProgram(skyboxShader);
+
+		// setMat4(skyboxShader, "view", glm::mat4(glm::mat3(view)));
+		// setMat4(skyboxShader, "projection", projection);
+		
+		// glDrawArrays(GL_TRIANGLES, 0, 36);
+		// glDepthMask(GL_TRUE);
 
         // mixvalue = setmixvalue(window, mixvalue);
         // setFloat(shaderProgram, "mixvalue", mixvalue);

@@ -32,4 +32,5 @@ void main(){
     FragPos = vec3(model * vec4(aPos, 1.0));
 
     TexCoords = aTexCoords;
+    // gl_PointSize = 10 * gl_Position.z;
 }

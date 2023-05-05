@@ -77,8 +77,7 @@ mesh createMesh(std::vector<vertex> vertices, std::vector<unsigned int> indices,
 	return result;
 }
 
-void draw(const unsigned int &shader, mesh &object)
-{
+void draw(const unsigned int &shader, mesh &object){
 	unsigned int diffuseNr = 1;
 	unsigned int specularNr = 1;
 
@@ -92,11 +91,18 @@ void draw(const unsigned int &shader, mesh &object)
 			number = std::to_string(diffuseNr++);
 		else
 			number = std::to_string(specularNr++);
-		setFloat(shader, ("material." + std::string(!object.textures[i].type ? "texture_diffuse" : "texture_specular") + number).c_str(), i);
+
 		glBindTexture(GL_TEXTURE_2D, object.textures[i].id);
+		// glUseProgram(shader);
+		glBindVertexArray(object.VAO);
+		setInt(shader, ("material." + std::string(!object.textures[i].type ? "diffuse" : "specular") + number).c_str(), i);
+		// setFloat(shader, "specular1", object.textures[i].id);
+		// std::cout << i << std::endl;
+		// std::cout << ("material." + std::string(!object.textures[i].type ? "diffuse" : "specular") + number).c_str() << std::endl;
 	}
 
-	glActiveTexture(GL_TEXTURE0);
+	// glActiveTexture(GL_TEXTURE1);
+
 	// draw mesh
 	glBindVertexArray(object.VAO);
 	glDrawElements(GL_TRIANGLES, object.indices.size(), GL_UNSIGNED_INT, 0);
