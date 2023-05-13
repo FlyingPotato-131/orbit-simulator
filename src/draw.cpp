@@ -12,6 +12,7 @@
 #include "camera.h"
 #include "model.h"
 #include "cube.h"
+// #include "tree.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -40,8 +41,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 
 int main(){
 	camera mainview = createCamera(
-		{0.0f, 0.0f, 3.0f},
-		{0.0f, 0.0f, 0.0f},
+		{0.0f, 0.0f, 7000.0f},
+		{00.0f, 0.0f, 0.0f},
 		{0.0f, 1.0f, 0.0f}
 	);
 
@@ -74,19 +75,27 @@ int main(){
 	glViewport(0, 0, windowWidth, windowHeight);
 	unsigned int shaderProgram = loadShaders("../resources/shaders/vertex_shader.vert", "../resources/shaders/fragment_shader.frag");
 	unsigned int skyboxShader = loadShaders("../resources/shaders/skybox.vert", "../resources/shaders/skybox.frag");
+	// unsigned int planetShader = loadShaders("../resources/shaders/planet.vert", "../resources/shaders/planet.frag");
+	// unsigned int depthShader = loadShaders("../resources/shaders/depth_shader.vert", "../resources/shaders/depth_shader.frag");
 
 	// stbi_set_flip_vertically_on_load(true);
 
-	model backpack = loadModel("../resources/models/Buran2/buran.obj");
-	// model backpack = loadModel("../resources/models/backpack/backpack.obj");
+	model backpack = loadModel("../resources/models/Buran/scene.gltf");
+	// model backpack = loadModel("../resources/models/Buran2/buran.obj");
 	std::cout << "Loaded model" << std::endl;
 
+	unsigned int normalMap = loadTexture("../resources/models/Buran/textures/buran_Color_normal.png");
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// glEnable(GL_FRAMEBUFFER_SRGB);
 
 	// unsigned int diffMap = loadTexture("../resources/textures/container2.png");
 	// unsigned int specMap = loadTexture("../resources/textures/container2_specular.png");
@@ -142,19 +151,26 @@ int main(){
 	// setVec3(shaderProgram, "objectColor", 1.0f, 0.5f, 0.31f);
 	// setVec3(shaderProgram, "lightColor", 1.0f, 1.0f, 1.0f);
 
-	glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+	glm::vec3 lightPos(1.2f, 0.0f, -2.0f);
 
 	setVec3(shaderProgram, "light.position", lightPos);
 	setFloat(shaderProgram, "light.constant", 1.0f);
 	setFloat(shaderProgram, "light.linear", 0.09f);
 	setFloat(shaderProgram, "light.quadratic", 0.032f);
 
-	glEnable(GL_CULL_FACE);
+	// glBindVertexArray(backpack.VAO);
+	// setInt(shaderProgram, "material.normalMap", normalMap);
+
+	glm::vec3 lightColor = glm::vec3(1.0f);
+	glm::vec3 diffuseColor = lightColor * glm::vec3(2.5f);
+	glm::vec3 ambientColor = diffuseColor * glm::vec3(0.025f);
+	setVec3(shaderProgram, "light.ambient", ambientColor);
+	setVec3(shaderProgram, "light.diffuse", diffuseColor);
 
 	// stbi_set_flip_vertically_on_load(false);
 	stbi_set_flip_vertically_on_load(true);
 
-	std::string skyboxPath = "../resources/textures/StarSkybox04NamedConstell/";
+	std::string skyboxPath = "../resources/textures/StarSkybox04/";
 
 	std::vector<std::string> faces{
 		skyboxPath + "StarSkybox044.png",
@@ -165,33 +181,10 @@ int main(){
 		skyboxPath + "StarSkybox042.png"
 	};
 	unsigned int cubemapTexture = loadCubemap(faces);
+	unsigned int earthDay = loadTexture("../resources/textures/2k_earth_daymap.jpg");
 
-	// glUseProgram(skyboxShader);
-
-	// unsigned int skyboxVAO;
-	// unsigned int skyboxVBO;
-	// glGenVertexArrays(1, &skyboxVAO);
-	// glGenBuffers(1, &skyboxVBO);
-
-	// glBindVertexArray(skyboxVAO);
-	// glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
-	// glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-
-	// glBindVertexArray(skyboxVAO);
-	// glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertexCoords), &cubeVertexCoords[0], GL_STATIC_DRAW);
-
-	// // vertex coords
-	// glEnableVertexAttribArray(0);
-	// glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-
-	// // vertex normals
-	// // glEnableVertexAttribArray(1);
-	// // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)offsetof(vertex, norm));
-
-	// // vertex texture coords
-	// glEnableVertexAttribArray(2);
-	// glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)3);
-	// glBindVertexArray(0);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	unsigned int skyboxVAO, skyboxVBO;
     glGenVertexArrays(1, &skyboxVAO);
@@ -206,6 +199,30 @@ int main(){
 
 	glUseProgram(skyboxShader);
     setInt(skyboxShader, "skybox", 0);
+    setInt(skyboxShader, "earthDay", 1);
+	setVec3(skyboxShader, "lightDir", glm::normalize(lightPos));
+	setVec3(skyboxShader, "up", glm::normalize(mainview.up));
+
+	// float planetRect[] = {
+	// 	0.5f, 0.5f, 0.0f, // top right
+	// 	0.5f, -0.5f, 0.0f, // bottom right
+	// 	-0.5f, 0.5f, 0.0f, // top left
+
+	// 	0.5f, -0.5f, 0.0f, // bottom right
+	// 	-0.5f, -0.5f, 0.0f, // bottom left
+	// 	-0.5f, 0.5f, 0.0f, // top left
+	// };
+
+	// unsigned int planetVAO, planetVBO;
+    // glGenVertexArrays(1, &planetVAO);
+    // glGenBuffers(1, &planetVBO);
+
+	// glBindVertexArray(planetVAO);
+    // glBindBuffer(GL_ARRAY_BUFFER, planetVBO);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(planetRect), &planetRect, GL_STATIC_DRAW);
+
+	// glEnableVertexAttribArray(0);
+    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
     // glEnable(GL_PROGRAM_POINT_SIZE);
 
@@ -214,8 +231,6 @@ int main(){
         glClear(GL_COLOR_BUFFER_BIT);
 
         // glBindVertexArray(VAO);
-
-		glUseProgram(shaderProgram);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -226,6 +241,8 @@ int main(){
         y = oldpos.y;
        	mainview = oldpos.view; 
 
+       	glm::vec3 cameraPos = mainview.target + mainview.distance * cameraDir(mainview);
+
 		// glm::mat4 trans = glm::mat4(1.0f);
 		// trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
 
@@ -233,7 +250,9 @@ int main(){
 		// glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
 		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(6400.0, 0.0, 0.0));
 		// model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		// model = glm::rotate(model, (float)glm::radians(-140.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 		
 
@@ -244,13 +263,15 @@ int main(){
 		// view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
 		// view = glm::lookAt(mainview.pos, mainview.pos + mainview.front, mainview.up);
 		// view = glm::lookAt(mainview.pos, mainview.target, mainview.up);
-		view = glm::lookAt(mainview.target + mainview.distance * cameraPos(mainview), mainview.target, mainview.up);
+		view = glm::lookAt(cameraPos, mainview.target, mainview.up);
+
+		glUseProgram(shaderProgram);
 
 		setMat4(shaderProgram, "model", model);
 		setMat4(shaderProgram, "view", view);
 		setMat4(shaderProgram, "projection", projection);
 
-		setVec3(shaderProgram, "viewPos", cameraPos(mainview));
+		setVec3(shaderProgram, "viewPos", cameraDir(mainview));
 
 		// setVec3(shaderProgram, "material.ambient", 1.0f, 0.5f, 0.31f);
 		// setVec3(shaderProgram, "material.diffuse", 1.0f, 0.5f, 0.31f);
@@ -258,23 +279,24 @@ int main(){
 
 		// setVec3(shaderProgram, "light.ambient", 0.2f, 0.2f, 0.2f);
 		// setVec3(shaderProgram, "light.diffuse", 0.5f, 0.5f, 0.5f); // darkened
-		setVec3(shaderProgram, "light.specular", 1.0f, 1.0f, 1.0f);
 
-		glm::vec3 lightColor = glm::vec3(1.0f);
-		// lightColor.x = sin(glfwGetTime() * 2.0f);
-		// lightColor.y = sin(glfwGetTime() * 0.7f);
-		// lightColor.z = sin(glfwGetTime() * 1.3f);
-		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
-		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
-		setVec3(shaderProgram, "light.ambient", ambientColor);
-		setVec3(shaderProgram, "light.diffuse", diffuseColor);
-		// std::cout << diffuseColor.x << std::endl;
+		// setVec3(shaderProgram, "light.specular", 1.0f, 1.0f, 1.0f);
+
+		// glm::vec3 lightColor = glm::vec3(1.0f);
+		// // lightColor.x = sin(glfwGetTime() * 2.0f);
+		// // lightColor.y = sin(glfwGetTime() * 0.7f);
+		// // lightColor.z = sin(glfwGetTime() * 1.3f);
+		// glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+		// glm::vec3 ambientColor = diffuseColor * glm::vec3(0.05f);
+		// setVec3(shaderProgram, "light.ambient", ambientColor);
+		// setVec3(shaderProgram, "light.diffuse", diffuseColor);
+		// // std::cout << diffuseColor.x << std::endl;
 
 		setFloat(shaderProgram, "material.shininess", 32.0f);
 		// std::cout << "drawing" << std::endl;
 		setMat3(shaderProgram, "normalmtr", glm::inverse(glm::mat3(model)), true);
 
-		draw(shaderProgram, backpack);
+		draw(shaderProgram, backpack, normalMap);
 
         // draw skybox as last
         glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
@@ -283,64 +305,29 @@ int main(){
         view = glm::mat4(glm::mat3(view)); // remove translation from the view matrix
         setMat4(skyboxShader, "view", view);
         setMat4(skyboxShader, "projection", projection);
+		setVec3(skyboxShader, "viewDir", glm::normalize(cameraDir(mainview)));
+		setVec3(skyboxShader, "cameraPos", cameraPos);
 
         // skybox cube
         glBindVertexArray(skyboxVAO);
+
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+        // setInt(skyboxShader, )
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, earthDay);
+
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
         glDepthFunc(GL_LESS); // set depth function back to default
 
-		// glDepthMask(GL_FALSE);
-		// glUseProgram(skyboxShader);
+        // // draw planet
+        // glUseProgram(planetShader);
 
-		// setMat4(skyboxShader, "view", glm::mat4(glm::mat3(view)));
-		// setMat4(skyboxShader, "projection", projection);
-		
-		// glDrawArrays(GL_TRIANGLES, 0, 36);
-		// glDepthMask(GL_TRUE);
-
-        // mixvalue = setmixvalue(window, mixvalue);
-        // setFloat(shaderProgram, "mixvalue", mixvalue);
-
-		// glActiveTexture(GL_TEXTURE0);
-        // glBindTexture(GL_TEXTURE_2D, diffMap);
-        // glActiveTexture(GL_TEXTURE1);
-		// glBindTexture(GL_TEXTURE_2D, specMap);
-
-		// glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
-		// glBindTexture(GL_TEXTURE_2D, texture);
-
-		// glBindVertexArray(VAO);
-		// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		// glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		// glDrawArrays(GL_TRIANGLES, 0, 36);
-		
-		// for(unsigned int i = 0; i < 10; i++)
-		// {
-		// 	glm::mat4 model = glm::mat4(1.0f);
-		// 	model = glm::translate(model, cubePositions[i]);
-		// 	float angle = 20.0f * i;
-		// 	model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-
-		// 	setMat4(shaderProgram, "model", model);
-		//  setMat3(shaderProgram, "normalmtr", glm::inverse(glm::mat3(model)), true);
-		// 	glDrawArrays(GL_TRIANGLES, 0, 36);
-		// }
-
-		// glBindVertexArray(lightVAO);
-
-		// glUseProgram(lightShader);
-
-		// setVec3(lightShader, "lightColor", lightColor);
-
-		// setMat4(shaderProgram, "model", light);
-		// setMat4(shaderProgram, "view", view);
-		// setMat4(shaderProgram, "projection", projection);
-
-		// glDrawArrays(GL_TRIANGLES, 0, 36);
-
+        // glBindVertexArray(planetVAO);
+        // // glUseProgram(planetShader);
+        // glDrawArrays(GL_TRIANGLES, 0, 6);
+        // glBindVertexArray(0);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

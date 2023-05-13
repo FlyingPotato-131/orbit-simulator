@@ -15,10 +15,10 @@ struct model{
 	std::string directory;
 };
 
-void draw(const unsigned int &shader, model &object){
+void draw(const unsigned int &shader, model &object, const unsigned int normalMap){
 	// std::cout << object.meshes.size() << std::endl;
-	for(unsigned int i = 0; i < object.meshes.size(); i++)
-		draw(shader, object.meshes[i]);
+	for(unsigned int i = 0; i < object.meshes.size() - 1; i++)
+		draw(shader, object.meshes[i], normalMap);
 }
 
 std::vector<texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, bool typeName, std::string path){
@@ -43,6 +43,7 @@ std::vector<texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, b
 			textures_loaded.push_back(tex);
 			textures.push_back(tex);
 			std::cout << "Loaded texture " << str.C_Str() << std::endl;
+			// stbi_set_flip_vertically_on_load(true);
 		}
 	}
 	return textures;
@@ -79,6 +80,14 @@ mesh processMesh(aiMesh *mesh, const aiScene *scene, std::string path){
 		}else
 			vertex.tex = glm::vec2(0.0f, 0.0f);
 
+		glm::vec3 tangent;
+
+		tangent.x = mesh->mTangents[i].x;
+		tangent.y = mesh->mTangents[i].y;
+		tangent.z = mesh->mTangents[i].z;
+		vertex.tan = tangent;
+		// std::cout << tangent.x << std::endl;
+
 		vertices.push_back(vertex);
 	}
 
@@ -97,7 +106,7 @@ mesh processMesh(aiMesh *mesh, const aiScene *scene, std::string path){
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 		// std::cout << diffuseMaps.size() << std::endl;
 
-		std::vector<texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, true, path);
+		std::vector<texture> specularMaps = loadMaterialTextures(material, aiTextureType_METALNESS, true, path);
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 	}
 
@@ -130,7 +139,7 @@ model loadModel(std::string path){
 	model result;
 
 	Assimp::Importer import;
-	const aiScene *scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+	const aiScene *scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
 	if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode){
 		std::cout << "ERROR::ASSIMP::" << import.GetErrorString() << std::endl;

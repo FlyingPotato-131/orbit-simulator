@@ -18,7 +18,7 @@ struct camera{
 	glm::vec3 up;
 };
 
-glm::vec3 cameraPos(camera view){
+glm::vec3 cameraDir(camera view){
 	return {
 		cos(view.pitch) * sin(view.yaw),
 		sin(view.pitch),
@@ -29,10 +29,10 @@ glm::vec3 cameraPos(camera view){
 camera createCamera(glm::vec3 pos, glm::vec3 target, glm::vec3 up = {0.0f, 1.0f, 0.0f}){
 	return{
 		target,
-		glm::length(pos - target),
-		float(asin((pos.y - target.y) / glm::length(pos - target))),
-		float(asin((pos.x - target.x) / glm::length(pos - target))),
-		up
+		glm::length(pos),
+		float(asin((pos.y) / glm::length(pos))),
+		float(asin((pos.x) / glm::length(pos))),
+		glm::normalize(up)
 	};
 }
 

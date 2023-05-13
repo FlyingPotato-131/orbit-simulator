@@ -111,7 +111,8 @@ unsigned int loadTexture(const char *path){
 	glBindTexture(GL_TEXTURE_2D, texture);
 
 	if (data){
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, path_str.find(".jpg") ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, nrChannels == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, data);
+		// glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8, width, height, 0, path_str.find(".jpg") ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 		// std::cout << "Loaded texture " << path << std::endl;
 	}else{

@@ -8,6 +8,7 @@ struct vertex{
 	glm::vec3 pos;
 	glm::vec3 norm;
 	glm::vec2 tex;
+	glm::vec3 tan;
 };
 
 struct texture{
@@ -53,6 +54,10 @@ unsigned int *setupMesh(std::vector<vertex> vertices, std::vector<unsigned int> 
 	// vertex texture coords
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)offsetof(vertex, tex));
+
+	//vertex tangents
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)offsetof(vertex, tan));
 	glBindVertexArray(0);
 	
 	// std::cout << "fin" << std::endl;
@@ -77,7 +82,7 @@ mesh createMesh(std::vector<vertex> vertices, std::vector<unsigned int> indices,
 	return result;
 }
 
-void draw(const unsigned int &shader, mesh &object){
+void draw(const unsigned int &shader, mesh &object, const unsigned int normalMap){
 	unsigned int diffuseNr = 1;
 	unsigned int specularNr = 1;
 
@@ -95,11 +100,18 @@ void draw(const unsigned int &shader, mesh &object){
 		glBindTexture(GL_TEXTURE_2D, object.textures[i].id);
 		// glUseProgram(shader);
 		glBindVertexArray(object.VAO);
-		setInt(shader, ("material." + std::string(!object.textures[i].type ? "diffuse" : "specular") + number).c_str(), i);
+		// setInt(shader, ("material." + std::string(!object.textures[i].type ? "diffuse" : "surface") + number).c_str(), object.textures[i].id - 1);
+		setInt(shader, ("material." + std::string(!object.textures[i].type ? "diffuse" : "surface") + number).c_str(), i);
 		// setFloat(shader, "specular1", object.textures[i].id);
 		// std::cout << i << std::endl;
 		// std::cout << ("material." + std::string(!object.textures[i].type ? "diffuse" : "specular") + number).c_str() << std::endl;
 	}
+
+	glActiveTexture(GL_TEXTURE0 + object.textures.size());
+	glBindTexture(GL_TEXTURE_2D, normalMap);
+	glBindVertexArray(object.VAO);
+	setInt(shader, "material.normalMap", object.textures.size());
+	// setInt(shader, "material.normalMap", 2);
 
 	// glActiveTexture(GL_TEXTURE1);
 
