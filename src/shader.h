@@ -113,8 +113,11 @@ unsigned int loadTexture(const char *path){
 	if (data){
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, nrChannels == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, data);
 		// glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8, width, height, 0, path_str.find(".jpg") ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-		// std::cout << "Loaded texture " << path << std::endl;
+		// glGenerateMipmap(GL_TEXTURE_2D);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		std::cout << "Loaded texture " << path << std::endl;
 	}else{
 		std::cout << "Failed to load texture " << path << std::endl;
 	}
@@ -135,7 +138,7 @@ unsigned int loadCubemap(std::vector<std::string> faces){
 	for (unsigned int i = 0; i < faces.size(); i++){
 		unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
 		if (data){
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, faces[i].find(".jpg") ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, data);
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, nrChannels == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, data);
 			stbi_image_free(data);
 		}else{
 			std::cout << "Cubemap failed to load at path: " << faces[i] << std::endl;
