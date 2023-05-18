@@ -6,16 +6,19 @@ const float G = 0.000000000000066743;
 const float GxM = 398332.4;
 const float mass = 42000;
 const float dragCoeff = 0.01f;
+const float twr = 1;
 
 struct state{
 	glm::vec3 pos;
 	glm::vec3 v;
+	glm::vec3 rotate;
 };
 
 state movedt(state current, glm::vec3 a, float dt){
 	return{
 		current.pos + current.v * dt + a * dt * dt,
-		current.v + a * dt
+		current.v + a * dt,
+		current.rotate
 	};
 }
 
@@ -25,4 +28,11 @@ glm::vec3 gravForce(state current){
 
 glm::vec3 drag(state current){
 	return -dragCoeff * current.v * static_cast<float>(exp(-glm::length(current.pos)));
+}
+
+glm::mat3 localCoords(state current){
+	glm::vec3 normal = glm::normalize(cross(current.pos, current.v));
+	glm::vec3 radial = glm::normalize(cross(current.v, normal));
+	return glm::mat3(glm::normalize(current.v), radial, -normal);
+	// return glm::mat3(radial, normal, current.v);
 }

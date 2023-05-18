@@ -40,8 +40,8 @@ uniform Light light;
 in vec3 Normal;
 in vec3 FragPos;
 in vec2 TexCoords;
-in vec3 lightDir;
-in vec3 viewDir;
+// in vec3 lightDir;
+// in vec3 viewDir;
 // in mat3 TBN;
 
 out vec4 FragColor;
@@ -64,22 +64,6 @@ mat3 getTBN(vec3 pos, vec2 tex, vec3 norm){
     vec3 B = normalize(cross(T, N));
     return mat3(T, B, N);
 }
-
-// mat3 getTBN(vec3 p, vec2 uv, vec3 N){
-// 	// get edge vectors of the pixel triangle
-// 	vec3 dp1 = dFdx( p );
-// 	vec3 dp2 = dFdy( p );
-// 	vec2 duv1 = dFdx( uv );
-// 	vec2 duv2 = dFdy( uv );
-// 	// solve the linear system
-// 	vec3 dp2perp = cross( dp2, N );
-// 	vec3 dp1perp = cross( N, dp1 );
-// 	vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;
-// 	vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;
-// 	// construct a scale-invariant frame
-// 	float invmax = inversesqrt( max( dot(T,T), dot(B,B) ) );
-// 	return mat3( T * invmax, B * invmax, N );
-// }
 
 vec3 fresnelSchlick(float cosTheta, vec3 F0){
 	return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
@@ -162,49 +146,3 @@ void main(){
 	// FragColor = vec4(vec3(0.5) + 0.5 * TBN * vec3(0.0, 1.0, 0.0), 1.0);
 	// FragColor = vec4(Normal, 1.0);
 }
-
-// void main(){
-// 	// vec3 norm = vec3(0.0, 0.0, 1.0);
-// 	vec3 norm = vec3(texture(material.normalMap, TexCoords));
-// 	norm = normalize(norm * 2.0 - vec3(1.0));
-
-// 	// float distance = length(light.position - FragPos);
-// 	// float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
-// 	float attenuation = 1.0;
-
-// 	// vec3 ambient = lightColor * material.ambient * light.ambient;
-// 	vec3 ambient = light.ambient * vec3(texture(material.diffuse1, TexCoords));
-// 	// vec3 ambient = vec3(0.0);
-
-// 	// diffuse
-// 	// vec3 norm = normalize(Normal);
-// 	// vec3 lightDir = normalize(light.position);
-// 	// vec3 lightDir = normalize(light.position);
-// 	float diff = max(dot(norm, lightPos), 0.0);
-// 	// vec3 diffuse = light.diffuse * (diff);
-// 	vec3 diffuse = diff * vec3(texture(material.surface1, TexCoords));
-// 	// vec3 diffuse = light.diffuse * diff * vec3(texture(material.normalMap, TexCoords));
-// 	// vec3 diffuse = light.diffuse * diff * vec3(transpose(TBN) * vec3(0.0, 1.0, 0.0) * inverse(TBN));
-// 	// float gamma = 2.2;
-// 	// vec3 diffuse = light.diffuse * diff * pow(texture(material.diffuse1, TexCoords).rgb, vec3(gamma));
-
-// 	// specular
-// 	// vec3 viewDir = TBN * normalize(viewDir - FragPos);
-// 	// vec3 reflectdir = reflect(-lightDir, norm);
-// 	// float spec = dot(reflectdir, norm) > 0 ? pow(max(dot(viewDir, reflectdir), 0.0), material.shininess) : 0;
-// 	// // float spec = 1 > 0 ? pow(max(dot(viewdir, reflectdir), 0.0), material.shininess) : 0;
-// 	// // vec3 specular = lightcolor * (spec * material.specular) * light.specular;
-// 	// vec3 specular = light.specular * spec * vec3(texture(material.surface1, texcoords));
-// 	// vec3 specular = vec3(0.0);
-
-// 	vec3 lightDir = normalize(light.position - FragPos);
-// 	vec3 viewDir = normalize(viewPos - FragPos);
-// 	vec3 halfwayDir = normalize(lightDir + viewDir);
-
-// 	float spec = pow(max(dot(norm, halfwayDir), 0.0), material.shininess);
-// 	vec3 specular = spec * vec3(texture(material.surface1, TexCoords));
-
-// 	vec3 result = attenuation * (diffuse + specular) + ambient;
-// 	FragColor = vec4(result, 1.0);	
-// 	// FragColor = vec4(1.0);
-// }

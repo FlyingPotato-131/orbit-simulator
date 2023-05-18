@@ -168,25 +168,35 @@ int main(){
 
 	state currentState = {
 		{7000.0, 0.0, 0.0},
-		{0.0, 0.0, -8.0}
+		{0.0, 0.0, -8.0},
+		{0.0, 0.0, 1.0}
 	};
 	model = glm::translate(model, currentState.pos);
 
 	float time = glfwGetTime();
 
     initscr();
+    printw("Control Panel");
+    WINDOW *inputLine = newwin(0, 0, 7, 0);
+    // box(stdscr, 2, 2);
 	unsigned int timewarp = 1;
+    glm::vec3 deltav = glm::vec3(0.0);
+    float deltavabs = 0.0;
 	std::string input;
+	wmove(stdscr, 1, 0);
 	printw("current timewarp ");
     printw("%d", timewarp);
-	move(1, 0);
-    nodelay(stdscr, 1);
-    keypad(stdscr, 1);
+    wmove(stdscr, 2, 0);
+	printw("deltaV %.2f %.2f %.2f", deltav.x, deltav.y, deltav.z);
+    wmove(inputLine, 0, 0);
+    nodelay(inputLine, 1);
+    keypad(inputLine, 1);
 
-    std::regex getFloat("[+-]?([0-9]*[.])?[0-9]+");
-    // std::regex getInt("^[1-9]([0-9]*)$");
+    std::regex getFloats(R"((-?\d+(\.\d+)?){3})");
     std::regex getInt(R"(\d+)");
     bool shipCamera = true;
+    bool isdv = false;
+    bool staticCamera = false;
     float planetAngle = 0;
 
 	while(!glfwWindowShouldClose(window)){
@@ -209,17 +219,18 @@ int main(){
 		projection = glm::perspective(glm::radians(45.0f), float(dimensions[2]) / float(dimensions[3]), 0.1f, 100.0f);
 
 		//handle inputs
-        int key = getch();
+        int key = wgetch(inputLine);
         if(key == '\n'){
         	if(input.find("tw") != std::string::npos){
         		std::smatch out;
         		std::regex_search(input, out, getInt);
 		        timewarp = std::atoi(out.str().c_str());
-		        clrtoeol();
-				move(0, 0);
+		        wclrtoeol(stdscr);
+				wmove(stdscr, 1, 0);
 		        clrtoeol();
 		        printw("current timewarp ");
 		        printw("%d", timewarp);
+		        // wmove(inputLine, 0, 0);
 	    	}else if(input.find("pl") != std::string::npos){
 	    		shipCamera = false;
 	    		mainview.target = {0, 0, 0};
@@ -227,34 +238,96 @@ int main(){
 	    	}else if(input.find("sh") != std::string::npos){
 	    		shipCamera = true;
 	    		mainview.distance = 3;
+	    	}else if(input.find("sp") != std::string::npos){
+	    		staticCamera = true;	
+	    	}else if(input.find("or") != std::string::npos){
+	    		staticCamera = false;
+	    	}else if(input.find("dv") != std::string::npos){
+	    		std::stringstream out(input.c_str() + 2);
+	    		out >> deltav.x >> deltav.y >> deltav.z;
+	    		deltav.x = -deltav.x;
+	    		deltav = deltav * 0.001f;
+	    		isdv = true;
+	    		deltavabs = glm::length(deltav);
 	    	}
 
 	        input.clear();
-	        move(1, 0);
-	        clrtoeol();
+	        wmove(inputLine, 0, 0);
+	        wclrtoeol(inputLine);
         }else if(key == KEY_BACKSPACE){
         	input.pop_back();
-        	delch();	
+        	wdelch(inputLine);	
         }else if(key != ERR){
         	// move(1, 0);
         	input.push_back(key);
         }
 
-        refresh();
+        //handle maneuvers
+		float newTime = glfwGetTime();
+		glm::mat3 PRN = localCoords(currentState);
+
+        glm::vec3 thrust = glm::vec3(0.0);
+        if(deltavabs > 0){
+        	thrust = normalize(deltav) * 9.8f * twr * 0.001f;	
+        	deltav = deltav - thrust * (newTime - time) * float(timewarp);
+        	deltavabs -= glm::length(thrust) * (newTime - time) * float(timewarp);
+        	thrust = -PRN * thrust;
+        }else{
+        	deltav = glm::vec3(0.0);
+        	deltavabs = 0;
+        }
 
 		glm::vec3 a = gravForce(currentState) / mass + drag(currentState) / mass;
-		float newTime = glfwGetTime();
-		state oldState = currentState;
-		planetAngle -= (newTime - time) * timewarp / 86400;
-		currentState = movedt(currentState, a, timewarp * (newTime - time));
-		model = glm::translate(model, currentState.pos - oldState.pos);
+		// state oldState = currentState;
+		planetAngle -= (newTime - time) * float(timewarp) / 86400;
+		currentState = movedt(currentState, a + thrust, float(timewarp) * (newTime - time));
+		// model = glm::translate(model, currentState.pos - oldState.pos);
+		if(isdv){
+			isdv = false;
+			if(dot(deltav, deltav) != 0.0)
+				currentState.rotate = PRN * normalize(deltav);
+		}
+		model = glm::mat4(1.0);
+		model = glm::translate(model, currentState.pos);
+		// model = glm::rotate(model, glm::radians(90.f), glm::vec3(0.0, 1.0, 0.0));
+		if(currentState.rotate == glm::vec3(-1.0, 0.0, 0.0))
+			model = glm::rotate(model, glm::radians(180.f), glm::vec3(0.0, 1.0, 0.0));
+		else if(currentState.rotate != glm::vec3(1.0, 0.0, 0.0))
+			model = glm::rotate(model, acos(dot(normalize(currentState.rotate), {1.0, 0.0, 0.0})), cross({1.0, 0.0, 0.0}, currentState.rotate));	
+		model = glm::rotate(model, glm::radians(90.f), glm::vec3(0.0, 1.0, 0.0));
 
-		if(shipCamera)
+		//output flight data
+   		wmove(stdscr, 2, 0);
+   		clrtoeol();
+   		printw("deltaV %.2f %.2f %.2f", deltav.x * 1000, deltav.y * 1000, deltav.z * 1000);
+		wmove(stdscr, 3, 0);
+		clrtoeol();
+		printw("Velocity %.2f", length(currentState.v) * 1000);
+		wmove(stdscr, 4, 0);
+		clrtoeol();
+		printw("Altitude %.2f", length(currentState.pos) - 6400);
+		wmove(stdscr, 5, 0);
+		clrtoeol();
+		printw("FPS %d", int(round(1 / (newTime - time))));
+
+        wrefresh(stdscr);
+        wrefresh(inputLine);
+
+		if(shipCamera){
 			mainview.target = currentState.pos;
+			if(!staticCamera){
+				mainview.up = glm::normalize(currentState.pos);
+			}else{
+				mainview.up = {0.0, 1.0, 0.0};
+				PRN = glm::mat3(1.0);
+			}
+		}else{
+			mainview.up = {0.0, 1.0, 0.0};
+			PRN = glm::mat3(1.0);
+		}
 		
-
 		time = newTime;
-       	glm::vec3 cameraPos = mainview.target + mainview.distance * cameraDir(mainview);
+       	glm::vec3 cameraPos = mainview.target + mainview.distance * PRN * cameraDir(mainview);
 
 		glm::mat4 view;
 		view = glm::lookAt(cameraPos, mainview.target, mainview.up);
@@ -265,7 +338,7 @@ int main(){
 		setMat4(shaderProgram, "view", view);
 		setMat4(shaderProgram, "projection", projection);
 
-		setVec3(shaderProgram, "viewPos", cameraDir(mainview));
+		setVec3(shaderProgram, "viewPos", glm::normalize(cameraDir(mainview)));
 
 		setFloat(shaderProgram, "material.shininess", 32.0f);
 		// std::cout << "drawing" << std::endl;
@@ -280,7 +353,7 @@ int main(){
         view = glm::mat4(glm::mat3(view)); // remove translation from the view matrix
         setMat4(skyboxShader, "view", view);
         setMat4(skyboxShader, "projection", projection);
-		setVec3(skyboxShader, "viewDir", glm::normalize(cameraDir(mainview)));
+		setVec3(skyboxShader, "viewDir", glm::normalize(PRN * cameraDir(mainview)));
 		setVec3(skyboxShader, "cameraPos", cameraPos);
 		setFloat(skyboxShader, "angle", planetAngle);
 

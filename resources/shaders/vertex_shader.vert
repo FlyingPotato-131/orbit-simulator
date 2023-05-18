@@ -8,9 +8,9 @@ layout (location = 3) in vec3 aTangent;
 out vec2 TexCoords;
 out vec3 Normal;
 out vec3 FragPos;
-out vec3 lightDir;
-out vec3 viewDir;
-out mat3 TBN;
+// out vec3 lightDir;
+// out vec3 viewDir;
+// out mat3 TBN;
 
 struct Light{
     vec3 position;
@@ -43,7 +43,7 @@ void main(){
     // vec3 T = normalize(aTangent);
     vec3 N = normalize(vec3(normalmtr * aNormal));
     vec3 B = -cross(N, T);
-    TBN = transpose(mat3(T, B, N));
+    // TBN = transpose(mat3(T, B, N));
     // TBN = mat3(T, B, N);
     // TBN = mat3(vec3(0.0), vec3(0.0), N);
 
@@ -58,8 +58,8 @@ void main(){
 
     FragPos = vec3(model * vec4(aPos, 1.0));
 
-    lightDir = TBN * normalize(light.position);
-    viewDir = TBN * normalize(viewPos - FragPos);
+    // lightDir = TBN * normalize(light.position);
+    // viewDir = TBN * normalize(viewPos - FragPos);
 
     TexCoords = aTexCoords;
     // gl_PointSize = 10 * gl_Position.z;
