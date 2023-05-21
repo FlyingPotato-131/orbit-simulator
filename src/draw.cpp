@@ -35,6 +35,7 @@ int main(){
 		{0.0f, 1.0f, 0.0f}
 	);
 
+	//initialize opengl
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -59,11 +60,14 @@ int main(){
 	glEnable(GL_MULTISAMPLE);
 
 	glViewport(0, 0, windowWidth, windowHeight);
+	//load shaders
 	unsigned int shaderProgram = loadShaders("../resources/shaders/vertex_shader.vert", "../resources/shaders/fragment_shader.frag");
 	unsigned int skyboxShader = loadShaders("../resources/shaders/skybox.vert", "../resources/shaders/skybox.frag");
+	unsigned int orbitShader = loadShaders("../resources/shaders/orbit.vert", "../resources/shaders/orbit.frag");
 
 	// stbi_set_flip_vertically_on_load(true);
 
+	//load model
 	model buran = loadModel("../resources/models/Buran/scene.gltf");
 	std::cout << "Loaded model" << std::endl;
 
@@ -77,6 +81,8 @@ int main(){
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// glEnable(GL_CULL_FACE);
 
 	glUseProgram(shaderProgram);
 
@@ -101,12 +107,14 @@ int main(){
     	*scroll = y;
     });
 
+	//setup lighting
 	glm::vec3 lightPos(1.2f, 0.0f, -2.0f);
 
-	setVec3(shaderProgram, "light.position", lightPos);
-	setFloat(shaderProgram, "light.constant", 1.0f);
-	setFloat(shaderProgram, "light.linear", 0.09f);
-	setFloat(shaderProgram, "light.quadratic", 0.032f);
+	// setVec3(shaderProgram, "light.position", lightPos);
+	setVec3(shaderProgram, "lightPos", lightPos);
+	// setFloat(shaderProgram, "light.constant", 1.0f);
+	// setFloat(shaderProgram, "light.linear", 0.09f);
+	// setFloat(shaderProgram, "light.quadratic", 0.032f);
 
 	// glBindVertexArray(backpack.VAO);
 	// setInt(shaderProgram, "material.normalMap", normalMap);
@@ -120,17 +128,18 @@ int main(){
 	// stbi_set_flip_vertically_on_load(false);
 	stbi_set_flip_vertically_on_load(true);
 
-	std::string skyboxPath = "../resources/textures/StarSkybox04/";
+	// std::string skyboxPath = "../resources/textures/StarSkybox04/";
 
-	std::vector<std::string> faces{
-		skyboxPath + "StarSkybox044.png",
-		skyboxPath + "StarSkybox043.png",
-		skyboxPath + "StarSkybox045.png",
-		skyboxPath + "StarSkybox046.png",
-		skyboxPath + "StarSkybox041.png",
-		skyboxPath + "StarSkybox042.png"
-	};
+	// std::vector<std::string> faces{
+	// 	skyboxPath + "StarSkybox044.png",
+	// 	skyboxPath + "StarSkybox043.png",
+	// 	skyboxPath + "StarSkybox045.png",
+	// 	skyboxPath + "StarSkybox046.png",
+	// 	skyboxPath + "StarSkybox041.png",
+	// 	skyboxPath + "StarSkybox042.png"
+	// };
 	// unsigned int cubemapTexture = loadCubemap(faces);
+
 	//main env textures
 	unsigned int starsTexture = loadTexture("../resources/textures/hiptyc_2020_4k.jpg");
 	unsigned int earthDay = loadTexture("../resources/textures/2k_earth_daymap.jpg");
@@ -155,20 +164,27 @@ int main(){
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
 	glUseProgram(skyboxShader);
-    setInt(skyboxShader, "skybox", 0);
-    setInt(skyboxShader, "earthDay", 1);
-    setInt(skyboxShader, "earthNight", 2);
-    setInt(skyboxShader, "earthSpec", 3);
-    setInt(skyboxShader, "galaxy", 4);
+    setInt(skyboxShader, "textures.skybox", 0);
+    setInt(skyboxShader, "textures.earthDay", 1);
+    setInt(skyboxShader, "textures.earthNight", 2);
+    setInt(skyboxShader, "textures.earthSpec", 3);
+    setInt(skyboxShader, "textures.galaxy", 4);
 	setVec3(skyboxShader, "lightDir", glm::normalize(lightPos));
 	setVec3(skyboxShader, "up", glm::normalize(mainview.up));
+
+	//setup orbit
+    unsigned int orbitVAO, orbitVBO;
+    glGenVertexArrays(1, &orbitVAO);
+    glGenBuffers(1, &orbitVBO);
+
+    glLineWidth(2);
 
 	glm::mat4 model = glm::mat4(1.0f);
 	// glEnable(GL_PROGRAM_POINT_SIZE);
 
 	state currentState = {
 		{7000.0, 0.0, 0.0},
-		{0.0, 0.0, -8.0},
+		{0.0, 6.0, -5.0},
 		{0.0, 0.0, 1.0}
 	};
 	model = glm::translate(model, currentState.pos);
@@ -343,8 +359,30 @@ int main(){
 		setFloat(shaderProgram, "material.shininess", 32.0f);
 		// std::cout << "drawing" << std::endl;
 		setMat3(shaderProgram, "normalmtr", glm::inverse(glm::mat3(model)), true);
+		// setVec3(shaderProgram, "velocity", currentState.pos);
 
 		draw(shaderProgram, buran, normalMap);
+
+        //draw orbit
+        orbit params = createOrbit(currentState);
+        std::vector<glm::vec3> currentOrbit = orbitMesh(params, 500);
+
+		glBindVertexArray(orbitVAO);
+    	glBindBuffer(GL_ARRAY_BUFFER, orbitVBO);
+		glBufferData(GL_ARRAY_BUFFER, currentOrbit.size() * sizeof(glm::vec3), currentOrbit.data(), GL_STREAM_DRAW);
+
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+
+    	glUseProgram(orbitShader);
+    	setMat4(orbitShader, "view", view);
+    	setMat4(orbitShader, "projection", projection);
+    	setVec3(orbitShader, "cameraPos", cameraPos);
+
+		// glDrawArrays(params.ecc < 1 ? GL_LINE_LOOP : GL_LINE_STRIP, 0, currentOrbit.size());
+		glDrawArrays(GL_LINE_LOOP, 0, currentOrbit.size());
+		glBindVertexArray(0);
+
 
         // draw skybox as last
         glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
@@ -353,9 +391,14 @@ int main(){
         view = glm::mat4(glm::mat3(view)); // remove translation from the view matrix
         setMat4(skyboxShader, "view", view);
         setMat4(skyboxShader, "projection", projection);
+        // setMat4(skyboxShader, "model", model);
 		setVec3(skyboxShader, "viewDir", glm::normalize(PRN * cameraDir(mainview)));
 		setVec3(skyboxShader, "cameraPos", cameraPos);
 		setFloat(skyboxShader, "angle", planetAngle);
+		setVec3(skyboxShader, "pos", currentState.pos);
+		setVec3(skyboxShader, "velocity", normalize(currentState.v));
+		setVec3(skyboxShader, "target", mainview.target);
+		// setVec3(skyboxShader, "velocity", normalize(glm::vec3(0.0, 0.0, 1.0)));
 
         // skybox cube
         glBindVertexArray(skyboxVAO);
@@ -376,7 +419,6 @@ int main(){
         glBindVertexArray(0);
         glDepthFunc(GL_LESS); // set depth function back to default
 
-        // // draw planet
         // glUseProgram(planetShader);
 
         // glBindVertexArray(planetVAO);

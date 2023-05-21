@@ -35,8 +35,8 @@ uniform vec3 viewPos;
 // uniform float xoffset;
 
 void main(){
-    float far = 2000;
-    float near = 1;
+    // float far = 200;
+    // float near = 0.01;
 
     // vec3 T = normalize(vec3(model * vec4(aTangent, 0.0)));
     vec3 T = normalize(vec3(normalmtr * aTangent));
@@ -47,10 +47,12 @@ void main(){
     // TBN = mat3(T, B, N);
     // TBN = mat3(vec3(0.0), vec3(0.0), N);
 
-    gl_Position = projection * view * model * vec4(aPos.x, aPos.y, aPos.z, 1.0);
+    gl_Position = projection * view * model * vec4(aPos, 1.0);
+    // gl_Position = projection * view * vec4(aPos, 1.0);
     
-    gl_Position.z = 2.0*log(gl_Position.w/near + 1)/log(far/near + 1) - 1; 
-    gl_Position.z *= gl_Position.w;
+    // gl_Position.z = 2.0*log(gl_Position.w/near + 1)/log(far/near + 1) - 1; 
+    // gl_Position.z *= gl_Position.w;
+    // gl_Position.z = 1 - exp(gl_Position.z);
 
     // Normal = vec3(model * vec4(aNormal, 1.0));
     // Normal = mat3(transpose(inverse(model))) * aNormal;

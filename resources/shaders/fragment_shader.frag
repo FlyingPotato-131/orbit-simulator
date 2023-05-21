@@ -22,20 +22,20 @@ struct Material {
 // uniform sampler2D texture_specular1;
 // uniform sampler2D texture_specular2;
 
-struct Light{
-	vec3 position;
+// struct Light{
+// 	vec3 position;
 
-	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
+// 	vec3 ambient;
+// 	vec3 diffuse;
+// 	vec3 specular;
 
-	float constant;
-	float linear;
-	float quadratic;
-};
+// 	float constant;
+// 	float linear;
+// 	float quadratic;
+// };
 
 uniform Material material;
-uniform Light light;
+// uniform Light light;
 
 in vec3 Normal;
 in vec3 FragPos;
@@ -59,10 +59,18 @@ mat3 getTBN(vec3 pos, vec2 tex, vec3 norm){
     vec2 t1 = dFdx(tex);
     vec2 t2 = dFdy(tex);
 
-    vec3 T = -normalize(u * t2.y - v * t1.y);
-    vec3 N = normalize(norm);
-    vec3 B = normalize(cross(T, N));
-    return mat3(T, B, N);
+    // vec3 T = -normalize(u * t2.y - v * t1.y);
+    // // vec3 T = -normalize(u - v);
+    // vec3 N = normalize(norm);
+    // vec3 B = normalize(cross(T, N));
+    // return mat3(T, B, N);
+    vec3 vp = cross(v, norm);
+    vec3 up = cross(norm, u);
+    vec3 T = vp * t1.x + up * t2.x;
+    vec3 B = vp * t1.y + up * t2.y;
+
+    float invmax = inversesqrt(max(dot(T, T), dot(B, B)));
+    return mat3(T * invmax, B * invmax, norm);
 }
 
 vec3 fresnelSchlick(float cosTheta, vec3 F0){
@@ -114,7 +122,7 @@ void main(){
 	vec3 N = TBN * normalize(vec3(texture(material.normalMap, TexCoords)) * 2.0 - vec3(1.0));
 	// vec3 N = vec3(0.0, 0.0, 1.0);
 	vec3 V = normalize(normalize(viewPos - FragPos + FragPos));
-	vec3 L = normalize(normalize(light.position));
+	vec3 L = normalize(normalize(lightPos));
 	vec3 H = normalize(V + L);
 
 	vec3 F0 = vec3(0.04);
@@ -143,6 +151,6 @@ void main(){
 	// vec3 color = Lo;
 
 	FragColor = vec4(color, 1.0);
-	// FragColor = vec4(vec3(0.5) + 0.5 * TBN * vec3(0.0, 1.0, 0.0), 1.0);
-	// FragColor = vec4(Normal, 1.0);
+	// FragColor = vec4(vec3(0.5) + 0.5 * TBN * vec3(1.0, 0.0, 0.0), 1.0);
+	// FragColor = vec4(0.5 * Normal + vec3(0.5), 1.0);
 }
