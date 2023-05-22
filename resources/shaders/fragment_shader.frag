@@ -127,7 +127,8 @@ void main(){
 
 		// vec3 N = vec3(0.0, 0.0, 1.0);
 		vec3 N = TBN * normalize(vec3(texture(material.normalMap, TexCoords)) * 2.0 - vec3(1.0));
-		vec3 V = normalize(normalize(viewPos - FragPos + FragPos));
+		// vec3 V = normalize(viewPos - FragPos);
+		vec3 V = normalize(viewPos);
 		vec3 L = normalize(normalize(lightPos));
 		vec3 H = normalize(V + L);
 
