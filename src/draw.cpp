@@ -307,7 +307,7 @@ int main(){
 
 		// glm::vec3 a = gravForce(currentState) / mass + moonGrav(currentState, moonPos) / mass + drag(currentState) / mass;
 		// glm::vec3 a = (gravForce(currentState) + moonGrav(currentState, moonPos) + drag(currentState)) / mass;
-		glm::vec3 F = (gravForce(currentState) + moonGrav(currentState, moonPos) + drag(currentState) + thrust);
+		glm::vec3 F = (gravForce(currentState) + moonGrav(currentState, moonPos) + drag(currentState) + thrust * mass);
 		// wmove(stdscr, 6, 0);
 		// clrtoeol();
 		// printw("%f %f %f", a.x, a.y, a.z);
