@@ -42,7 +42,7 @@ in vec3 FragPos;
 in vec2 TexCoords;
 // in vec3 lightDir;
 // in vec3 viewDir;
-// in mat3 TBN;
+in mat3 TBN;
 
 out vec4 FragColor;
 
@@ -107,41 +107,51 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness){
 }
 
 void main(){
-	mat3 TBN = getTBN(FragPos, TexCoords, Normal);
+	float D = dot(FragPos, lightPos) * dot(FragPos, lightPos) - dot(lightPos, lightPos) * (dot(FragPos, FragPos) - 40960000);
+	float t = (-dot(FragPos, lightPos) - sqrt(abs(D))) / dot(lightPos, lightPos);	
+	vec3 Lo = vec3(0.0);
 
 	vec3 albedo = vec3(texture(material.diffuse1, TexCoords));
 	float metallic = texture(material.surface1, TexCoords).z;
 	float roughness = texture(material.surface1, TexCoords).y;
 	float ao = texture(material.surface1, TexCoords).x;
-	// float ao = 0.3;
-	// float metallic = 0;
-	// float roughness = 0.1;
+	
+	// mat3 TBN = getTBN(FragPos, TexCoords, Normal);
 
-	float radiance = 5;
+	if(D < 0 || t < 0){
+		// float ao = 0.3;
+		// float metallic = 0;
+		// float roughness = 0.1;
 
-	vec3 N = TBN * normalize(vec3(texture(material.normalMap, TexCoords)) * 2.0 - vec3(1.0));
-	// vec3 N = vec3(0.0, 0.0, 1.0);
-	vec3 V = normalize(normalize(viewPos - FragPos + FragPos));
-	vec3 L = normalize(normalize(lightPos));
-	vec3 H = normalize(V + L);
+		float radiance = 5;
 
-	vec3 F0 = vec3(0.04);
-	F0 = mix(F0, albedo, metallic);
-	vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
+		// vec3 N = vec3(0.0, 0.0, 1.0);
+		vec3 N = TBN * normalize(vec3(texture(material.normalMap, TexCoords)) * 2.0 - vec3(1.0));
+		vec3 V = normalize(normalize(viewPos - FragPos + FragPos));
+		vec3 L = normalize(normalize(lightPos));
+		vec3 H = normalize(V + L);
 
-	float NDF = DistributionGGX(N, H, roughness);
-	float G = GeometrySmith(N, V, L, roughness);
+		vec3 F0 = vec3(0.04);
+		F0 = mix(F0, albedo, metallic);
+		vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
 
-	vec3 numerator = NDF * G * F;
-	float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
-	vec3 specular = numerator / max(denominator, 0.001);
+		float NDF = DistributionGGX(N, H, roughness);
+		float G = GeometrySmith(N, V, L, roughness);
 
-	vec3 kS = F;
-	vec3 kD = vec3(1.0) - kS;
-	kD *= 1.0 - metallic;
+		vec3 numerator = NDF * G * F;
+		float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
+		vec3 specular = numerator / max(denominator, 0.001);
 
-	float NdotL = max(dot(N, L), 0.0);
-	vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL;
+		vec3 kS = F;
+		vec3 kD = vec3(1.0) - kS;
+		kD *= 1.0 - metallic;
+
+		float NdotL = max(dot(N, L), 0.0);
+		Lo = (kD * albedo / PI + specular) * radiance * NdotL;
+	}
+	// }else{
+	// 	Lo = vec3(0.0);
+	// }
 	// vec3 Lo = (kD * albedo / PI + specular - specular) * radiance * NdotL;
 	// vec3 Lo = vec3(NdotL);
 
@@ -151,6 +161,7 @@ void main(){
 	// vec3 color = Lo;
 
 	FragColor = vec4(color, 1.0);
-	// FragColor = vec4(vec3(0.5) + 0.5 * TBN * vec3(1.0, 0.0, 0.0), 1.0);
-	// FragColor = vec4(0.5 * Normal + vec3(0.5), 1.0);
+	// FragColor = vec4(vec3(0.5) + 0.5 * TBN * vec3(0.0, 0.0, 1.0), 1.0);
+	// FragColor = vec4(0.5 * N + vec3(0.5), 1.0);
+	// FragColor = vec4(N, 1);
 }

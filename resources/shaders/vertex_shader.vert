@@ -10,7 +10,7 @@ out vec3 Normal;
 out vec3 FragPos;
 // out vec3 lightDir;
 // out vec3 viewDir;
-// out mat3 TBN;
+out mat3 TBN;
 
 struct Light{
     vec3 position;
@@ -44,7 +44,7 @@ void main(){
     vec3 N = normalize(vec3(normalmtr * aNormal));
     vec3 B = -cross(N, T);
     // TBN = transpose(mat3(T, B, N));
-    // TBN = mat3(T, B, N);
+    TBN = mat3(T, B, N);
     // TBN = mat3(vec3(0.0), vec3(0.0), N);
 
     gl_Position = projection * view * model * vec4(aPos, 1.0);

@@ -19,6 +19,7 @@ void main(){
 
 	gl_Position = projection * view * vec4(aPos, 1.0);
 	gl_Position.z *= 0.9;
+	// gl_Position.z = 0.99;
 
     // gl_Position.z = 2.0*log(gl_Position.w/near + 1)/log(far/near + 1) - 1; 
     // gl_Position.z *= gl_Position.w;

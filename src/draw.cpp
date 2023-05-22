@@ -82,7 +82,7 @@ int main(){
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	// glEnable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
 
 	glUseProgram(shaderProgram);
 
@@ -141,13 +141,14 @@ int main(){
 	// unsigned int cubemapTexture = loadCubemap(faces);
 
 	//main env textures
-	unsigned int starsTexture = loadTexture("../resources/textures/hiptyc_2020_4k.jpg");
-	unsigned int earthDay = loadTexture("../resources/textures/2k_earth_daymap.jpg");
-	unsigned int earthNight = loadTexture("../resources/textures/2k_earth_nightmap.jpg");
-	unsigned int earthSpec = loadTexture("../resources/textures/2k_earth_specular_map.png");
+	unsigned int starsTexture = loadTexture("../resources/textures/hiptyc_2020_8k.jpg");
+	unsigned int earthDay = loadTexture("../resources/textures/8k_earth_daymap.jpg");
+	unsigned int earthNight = loadTexture("../resources/textures/8k_earth_nightmap.jpg");
+	unsigned int earthSpec = loadTexture("../resources/textures/8k_earth_specular_map.png");
 
 	//additional env textures
-	unsigned int galaxy = loadTexture("../resources/textures/milkyway_2020_4k.jpg");
+	unsigned int galaxy = loadTexture("../resources/textures/milkyway_2020_8k.jpg");
+	unsigned int moon = loadTexture("../resources/textures/8k_moon.jpg");
 
 	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -169,6 +170,7 @@ int main(){
     setInt(skyboxShader, "textures.earthNight", 2);
     setInt(skyboxShader, "textures.earthSpec", 3);
     setInt(skyboxShader, "textures.galaxy", 4);
+    setInt(skyboxShader, "textures.moon", 5);
 	setVec3(skyboxShader, "lightDir", glm::normalize(lightPos));
 	setVec3(skyboxShader, "up", glm::normalize(mainview.up));
 
@@ -183,8 +185,8 @@ int main(){
 	// glEnable(GL_PROGRAM_POINT_SIZE);
 
 	state currentState = {
-		{7000.0, 0.0, 0.0},
-		{0.0, 6.0, -5.0},
+		{7000.0, 0.0, 1000.0},
+		{1.0, 3.0, -7.0},
 		{0.0, 0.0, 1.0}
 	};
 	model = glm::translate(model, currentState.pos);
@@ -193,7 +195,7 @@ int main(){
 
     initscr();
     printw("Control Panel");
-    WINDOW *inputLine = newwin(0, 0, 7, 0);
+    WINDOW *inputLine = newwin(0, 0, 8, 0);
     // box(stdscr, 2, 2);
 	unsigned int timewarp = 1;
     glm::vec3 deltav = glm::vec3(0.0);
@@ -208,12 +210,15 @@ int main(){
     nodelay(inputLine, 1);
     keypad(inputLine, 1);
 
-    std::regex getFloats(R"((-?\d+(\.\d+)?){3})");
     std::regex getInt(R"(\d+)");
     bool shipCamera = true;
     bool isdv = false;
     bool staticCamera = false;
     float planetAngle = 0;
+
+    // glm::vec3 moonPos = {384399, 0, 0};
+    glm::vec3 moonPos;
+    float moonAngle = 1;
 
 	while(!glfwWindowShouldClose(window)){
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -293,10 +298,20 @@ int main(){
         	deltavabs = 0;
         }
 
-		glm::vec3 a = gravForce(currentState) / mass + drag(currentState) / mass;
 		// state oldState = currentState;
 		planetAngle -= (newTime - time) * float(timewarp) / 86400;
-		currentState = movedt(currentState, a + thrust, float(timewarp) * (newTime - time));
+		// moonAngle += (newTime - time) * float(timewarp) / 86400 * 2 * pi;
+		moonAngle += (newTime - time) * float(timewarp) / 375690.718;
+
+		moonPos = 384399.f * glm::vec3(sin(moonAngle), 0.f, cos(moonAngle));
+
+		// glm::vec3 a = gravForce(currentState) / mass + moonGrav(currentState, moonPos) / mass + drag(currentState) / mass;
+		// glm::vec3 a = (gravForce(currentState) + moonGrav(currentState, moonPos) + drag(currentState)) / mass;
+		glm::vec3 F = (gravForce(currentState) + moonGrav(currentState, moonPos) + drag(currentState) + thrust);
+		// wmove(stdscr, 6, 0);
+		// clrtoeol();
+		// printw("%f %f %f", a.x, a.y, a.z);
+		currentState = movedt(currentState, STRacc(currentState, F), float(timewarp) * (newTime - time));
 		// model = glm::translate(model, currentState.pos - oldState.pos);
 		if(isdv){
 			isdv = false;
@@ -325,6 +340,10 @@ int main(){
 		wmove(stdscr, 5, 0);
 		clrtoeol();
 		printw("FPS %d", int(round(1 / (newTime - time))));
+		wmove(stdscr, 6, 0);
+		clrtoeol();
+        orbit params = createOrbit(currentState);
+		printw("Ap %.2f Per %.2f", params.mAxis * (1 + params.ecc) - 6400, params.mAxis * (1 - params.ecc) - 6400);
 
         wrefresh(stdscr);
         wrefresh(inputLine);
@@ -364,7 +383,6 @@ int main(){
 		draw(shaderProgram, buran, normalMap);
 
         //draw orbit
-        orbit params = createOrbit(currentState);
         std::vector<glm::vec3> currentOrbit = orbitMesh(params, 500);
 
 		glBindVertexArray(orbitVAO);
@@ -398,6 +416,10 @@ int main(){
 		setVec3(skyboxShader, "pos", currentState.pos);
 		setVec3(skyboxShader, "velocity", normalize(currentState.v));
 		setVec3(skyboxShader, "target", mainview.target);
+		setVec3(skyboxShader, "moonPos", moonPos);
+		// float moonAngle = moonPos.z >= 0 ? acos(glm::dot(normalize(moonPos), glm::vec3(1.0, 0.0, 0.0))) : - acos(glm::dot(normalize(moonPos), glm::vec3(1.0, 0.0, 0.0)));
+		setFloat(skyboxShader, "moonAngle", (moonPos.z >= 0 ? 1 : -1) * acos(glm::dot(normalize(moonPos), glm::vec3(1.0, 0.0, 0.0))));
+		// setFloat(skyboxShader, "moonAngle", moonAngle);
 		// setVec3(skyboxShader, "velocity", normalize(glm::vec3(0.0, 0.0, 1.0)));
 
         // skybox cube
@@ -414,6 +436,8 @@ int main(){
         glBindTexture(GL_TEXTURE_2D, earthSpec);
         glActiveTexture(GL_TEXTURE4);
         glBindTexture(GL_TEXTURE_2D, galaxy);
+        glActiveTexture(GL_TEXTURE5);
+        glBindTexture(GL_TEXTURE_2D, moon);
 
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
