@@ -91,7 +91,7 @@ void main(){
 			FragColor = vec4(diffuse, 1.0);
 			// FragColor = vec4(1.0);
 		}else{
-			float sunSize = 0.0175;
+			float sunSize = 0.005;
 			// float sunSize = 1;
 			float brightness = 5;
 			vec3 sunColor = vec3(0.42, 0.39, 0.19);
