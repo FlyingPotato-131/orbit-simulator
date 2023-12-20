@@ -35,6 +35,7 @@ uniform vec3 viewPos;
 // uniform float xoffset;
 
 void main(){
+    // float pi = 3.141592653589793;
     // float far = 200;
     // float near = 0.01;
 
@@ -50,9 +51,12 @@ void main(){
     gl_Position = projection * view * model * vec4(aPos, 1.0);
     // gl_Position = projection * view * vec4(aPos, 1.0);
     
-    // gl_Position.z = 2.0*log(gl_Position.w/near + 1)/log(far/near + 1) - 1; 
+    // gl_Position.z = 2.0*log(gl_Position.z/near + 1)/log(far/near + 1) - 1; 
     // gl_Position.z *= gl_Position.w;
-    // gl_Position.z = 1 - exp(gl_Position.z);
+    // gl_Position.z = 10 - 10 * exp(gl_Position.z);
+    // gl_Position.z = atan(gl_Position.z) / 2 / pi + 0.5;
+    // gl_Position.z = 1 - 1 / (0.1 * gl_Position.z + 1);
+    gl_Position.z *= 0.1;
 
     // Normal = vec3(model * vec4(aNormal, 1.0));
     // Normal = mat3(transpose(inverse(model))) * aNormal;

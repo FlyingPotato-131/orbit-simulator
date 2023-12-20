@@ -15,17 +15,19 @@ struct model{
 	std::string directory;
 };
 
-void draw(const unsigned int &shader, model &object, const unsigned int normalMap){
+void draw(const unsigned int &shader, model &object){
 	// std::cout << object.meshes.size() << std::endl;
-	for(unsigned int i = 0; i < object.meshes.size() - 1; i++)
-		draw(shader, object.meshes[i], normalMap);
+	for(unsigned int i = 0; i < object.meshes.size() ; i++)
+		draw(shader, object.meshes[i]);
 }
 
-std::vector<texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, bool typeName, std::string path){
+std::vector<texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, std::string typeName, std::string path){
 	std::vector<texture> textures;
 	for(unsigned int i = 0; i < mat->GetTextureCount(type); i++){
 		aiString str;
+		// std::cout << "test" << std::endl;
 		mat->GetTexture(type, i, &str);
+		// std::cout << str.C_Str() << std::endl;
 		bool skip = false;
 		for(unsigned int j = 0; j < textures_loaded.size(); j++){
 			// std::cout << textures_loaded[j].path.data() << " " << str.C_Str() << std::endl;
@@ -37,7 +39,9 @@ std::vector<texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, b
 		}
 		if(!skip){
 			texture tex;
+			// std::cout << "test1" << std::endl;
 			tex.id = loadTexture((path + '/' + str.C_Str()).data());
+			// std::cout << "test2" << std::endl;
 			tex.type = typeName;
 			tex.path = str.C_Str();
 			textures_loaded.push_back(tex);
@@ -102,12 +106,21 @@ mesh processMesh(aiMesh *mesh, const aiScene *scene, std::string path){
 	if(mesh->mMaterialIndex >= 0){
 		aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
 
-		std::vector<texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, false, path);
+		std::vector<texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, std::string("diffuse"), path);
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 		// std::cout << diffuseMaps.size() << std::endl;
 
-		std::vector<texture> specularMaps = loadMaterialTextures(material, aiTextureType_METALNESS, true, path);
+		std::vector<texture> specularMaps = loadMaterialTextures(material, aiTextureType_SHININESS, std::string("surface"), path);
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+
+		std::vector<texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, std::string("normal"), path);
+		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+
+		std::vector<texture> lightmaps = loadMaterialTextures(material, aiTextureType_LIGHTMAP, std::string("lightmap"), path);
+		textures.insert(textures.end(), lightmaps.begin(), lightmaps.end());
+
+		std::vector<texture> emission = loadMaterialTextures(material, aiTextureType_EMISSIVE, std::string("emission"), path);
+		textures.insert(textures.end(), emission.begin(), emission.end());
 	}
 
 	return createMesh(vertices, indices, textures);

@@ -12,7 +12,10 @@ struct Material {
 	sampler2D diffuse2;
 	sampler2D surface1;
 	sampler2D surface2;
-	sampler2D normalMap;
+	// sampler2D normalMap;
+	sampler2D normal;
+	sampler2D lightmap;
+	sampler2D emission;
 	float shininess;
 };
 
@@ -112,9 +115,12 @@ void main(){
 	vec3 Lo = vec3(0.0);
 
 	vec3 albedo = vec3(texture(material.diffuse1, TexCoords));
-	float metallic = texture(material.surface1, TexCoords).z;
-	float roughness = texture(material.surface1, TexCoords).y;
+	// float metallic = texture(material.surface1, TexCoords).z;
+	float metallic = 0.2;
+	float roughness = texture(material.surface1, TexCoords).x;
 	float ao = texture(material.surface1, TexCoords).x;
+	float em = texture(material.emission, TexCoords).x;
+	// float em = 0;
 	
 	// mat3 TBN = getTBN(FragPos, TexCoords, Normal);
 
@@ -126,7 +132,7 @@ void main(){
 		float radiance = 5;
 
 		// vec3 N = vec3(0.0, 0.0, 1.0);
-		vec3 N = TBN * normalize(vec3(texture(material.normalMap, TexCoords)) * 2.0 - vec3(1.0));
+		vec3 N = TBN * normalize(vec3(texture(material.normal, TexCoords)) * 2.0 - vec3(1.0));
 		// vec3 V = normalize(viewPos - FragPos);
 		vec3 V = normalize(viewPos);
 		vec3 L = normalize(normalize(lightPos));
@@ -149,6 +155,7 @@ void main(){
 
 		float NdotL = max(dot(N, L), 0.0);
 		Lo = (kD * albedo / PI + specular) * radiance * NdotL;
+		// Lo = albedo;
 	}
 	// }else{
 	// 	Lo = vec3(0.0);
@@ -156,8 +163,8 @@ void main(){
 	// vec3 Lo = (kD * albedo / PI + specular - specular) * radiance * NdotL;
 	// vec3 Lo = vec3(NdotL);
 
-	vec3 ambient = vec3(0.03) * albedo * ao;
-	// vec3 ambient = vec3(1.03) * albedo * ao;
+	// vec3 ambient = vec3(0.03) * albedo * ao;
+	vec3 ambient = vec3(0.03) * albedo * ao + em;
 	vec3 color = ambient + Lo;
 	// vec3 color = Lo;
 

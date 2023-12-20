@@ -10,9 +10,10 @@ in vec3 TexCoords;
 
 struct Textures{
 	sampler2D skybox;
-	sampler2D earthDay;
-	sampler2D earthNight;
-	sampler2D earthSpec;
+	// sampler2D earthDay;
+	// sampler2D earthNight;
+	// sampler2D earthSpec;
+	sampler2D ceres;
 	sampler2D galaxy;
 	sampler2D moon;
 };
@@ -27,6 +28,7 @@ uniform vec3 cameraPos;
 uniform float angle;
 uniform vec3 moonPos;
 uniform float moonAngle;
+uniform vec3 earthPos;
 
 float signedMod(float x, float y){
 	return x - y * round(x / y);
@@ -44,27 +46,29 @@ void main(){
 	float pi = 3.141592653589793;
 
 	vec3 viewRay = TexCoords;
-	float D = dot(cameraPos, viewRay) * dot(cameraPos, viewRay) - dot(viewRay, viewRay) * (dot(cameraPos, cameraPos) - 40960000);
-	float t = (-dot(cameraPos, viewRay) - sqrt(abs(D))) / dot(viewRay, viewRay);	
+	float D = dot(cameraPos - earthPos, viewRay) * dot(cameraPos - earthPos, viewRay) - dot(viewRay, viewRay) * (dot(cameraPos - earthPos, cameraPos - earthPos) - 220618.09);
+	float t = (-dot(cameraPos - earthPos, viewRay) - sqrt(abs(D))) / dot(viewRay, viewRay);	
 
 	// if(lineDistance(vec2(screenCoord), vec2(shipPos), normalize(vec2(shipV))) < 0.003){
 	// 	FragColor = vec4(1.0, 1.0, 1.0, 1.0);
 	if(D > 0 && t > 0){
 		vec3 atmColor = vec3(0.23, 0.54, 0.73);
 
-		vec3 fragPos = normalize(cameraPos + viewRay * t);	
+		vec3 fragPos = normalize(cameraPos - earthPos + viewRay * t);	
 
 		float theta = asin(fragPos.y);
 	    vec2 earthTex = vec2(-atan(fragPos.z / cos(theta), fragPos.x / cos(theta)), theta);
 	    earthTex = vec2(0.5 * earthTex.x / pi + angle, earthTex.y / pi + 0.5);
 
-		vec3 dayColor = mix(vec3(texture(textures.earthDay, earthTex)), atmColor, 0.4);
+		// vec3 dayColor = mix(vec3(texture(textures.earthDay, earthTex)), atmColor, 0.4);
 		// vec3 dayColor = vec3(texture(earthDay, earthTex)) + 0.3 * atmColor;
-		vec3 nightColor = vec3(texture(textures.earthNight, earthTex));
+		// vec3 nightColor = vec3(texture(textures.earthNight, earthTex));
+		vec3 dayColor = vec3(texture(textures.ceres, earthTex));
+		vec3 nightColor = 0.1 * vec3(texture(textures.ceres, earthTex));
 		vec3 diffuse = mix(nightColor * nightColor, dayColor * dayColor, clamp(5.0 * max(dot(lightDir, fragPos), 0.0), 0.0, 1.0));
 
 		vec3 middle = normalize(lightDir + viewDir);
-		vec3 spec = vec3(0.2 * texture(textures.earthSpec, earthTex)) * pow(max(dot(middle, fragPos), 0.0), 32);
+		vec3 spec = vec3(0.2 * texture(textures.ceres, earthTex)) * pow(max(dot(middle, fragPos), 0.0), 32);
 		// vec3 spec = vec3(0.0);
 
 

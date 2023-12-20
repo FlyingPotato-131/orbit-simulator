@@ -1,0 +1,27 @@
+# Blender 3.6.5 MTL File: 'None'
+# www.blender.org
+
+newmtl dish
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd textures/2_D.png.jpg
+map_Ns textures/2_R.png.jpg
+map_Po -imfchan r textures/2_AO.png.jpg
+map_Ke textures/2_Emi.png
+map_Bump -bm 1.000000 textures/2_N.png
+
+newmtl surface
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd textures/1_D.png.jpg
+map_Ns textures/1_R.png.jpg
+map_Po -imfchan r textures/1_AO.png.jpg
+map_Ke textures/1_Emi.png
+map_Bump -bm 1.000000 textures/1_N.png

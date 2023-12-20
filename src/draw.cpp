@@ -20,6 +20,7 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+#include <unistd.h>
 
 const unsigned int windowWidth = 1920;
 const unsigned int windowHeight = 1080;
@@ -68,10 +69,13 @@ int main(){
 	// stbi_set_flip_vertically_on_load(true);
 
 	//load model
-	model buran = loadModel("../resources/models/Buran/scene.gltf");
+	// model buran = loadModel("../resources/models/Buran/scene.gltf");
+	// model buran = loadModel("../resources/models/death-star/source/DeathStar.fbx");
+	// model buran = loadModel("../resources/models/death-star-2/death-star.obj");
+	model buran = loadModel("../resources/models/death-star-fix/death-star.obj");
 	std::cout << "Loaded model" << std::endl;
 
-	unsigned int normalMap = loadTexture("../resources/models/Buran/textures/buran_Color_normal.png");
+	// unsigned int normalMap = loadTexture("../resources/models/Buran/textures/buran_Color_normal.png");
 
 	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -142,9 +146,10 @@ int main(){
 
 	//main env textures
 	unsigned int starsTexture = loadTexture("../resources/textures/hiptyc_2020_8k.jpg");
-	unsigned int earthDay = loadTexture("../resources/textures/8k_earth_daymap.jpg");
-	unsigned int earthNight = loadTexture("../resources/textures/8k_earth_nightmap.jpg");
-	unsigned int earthSpec = loadTexture("../resources/textures/8k_earth_specular_map.png");
+	unsigned int ceresTexture = loadTexture("../resources/textures/ceres_4k.jpg");
+	// unsigned int earthDay = loadTexture("../resources/textures/8k_earth_daymap.jpg");
+	// unsigned int earthNight = loadTexture("../resources/textures/8k_earth_nightmap.jpg");
+	// unsigned int earthSpec = loadTexture("../resources/textures/8k_earth_specular_map.png");
 
 	//additional env textures
 	unsigned int galaxy = loadTexture("../resources/textures/milkyway_2020_8k.jpg");
@@ -166,11 +171,12 @@ int main(){
 
 	glUseProgram(skyboxShader);
     setInt(skyboxShader, "textures.skybox", 0);
-    setInt(skyboxShader, "textures.earthDay", 1);
-    setInt(skyboxShader, "textures.earthNight", 2);
-    setInt(skyboxShader, "textures.earthSpec", 3);
-    setInt(skyboxShader, "textures.galaxy", 4);
-    setInt(skyboxShader, "textures.moon", 5);
+    // setInt(skyboxShader, "textures.earthDay", 1);
+    // setInt(skyboxShader, "textures.earthNight", 2);
+    // setInt(skyboxShader, "textures.earthSpec", 3);
+    setInt(skyboxShader, "textures.ceres", 1);
+    setInt(skyboxShader, "textures.galaxy", 2);
+    setInt(skyboxShader, "textures.moon", 3);
 	setVec3(skyboxShader, "lightDir", glm::normalize(lightPos));
 	setVec3(skyboxShader, "up", glm::normalize(mainview.up));
 
@@ -181,23 +187,25 @@ int main(){
 
     glLineWidth(2);
 
-	glm::mat4 model = glm::mat4(1.0f);
+	glm::mat4 model = glm::mat4(0.001f);
 	// glEnable(GL_PROGRAM_POINT_SIZE);
 
 	state currentState = {
-		{7000.0, 0.0, 1000.0},
-		{1.0, 3.0, -7.0},
+		{2000.0, -100.0, 200.0},
+		// {2.0, 1.0, -4.0},
+		{0.4f, 0.8f, 1.6f},
 		{0.0, 0.0, 1.0}
 	};
 	model = glm::translate(model, currentState.pos);
 
 	float time = glfwGetTime();
+	float newTime = time;
 
     initscr();
     printw("Control Panel");
     WINDOW *inputLine = newwin(0, 0, 8, 0);
     // box(stdscr, 2, 2);
-	unsigned int timewarp = 1;
+	unsigned int timewarp = 0;
     glm::vec3 deltav = glm::vec3(0.0);
     float deltavabs = 0.0;
 	std::string input;
@@ -213,18 +221,27 @@ int main(){
     std::regex getInt(R"(\d+)");
     bool shipCamera = true;
     bool isdv = false;
-    bool staticCamera = false;
+    bool staticCamera = true;
     float planetAngle = 0;
 
     // glm::vec3 moonPos = {384399, 0, 0};
     glm::vec3 moonPos;
+    // glm::vec3 earthPos = {0, 7000, 0};
+    glm::vec3 earthPos = {0, 0000, 0};
+    glm::vec3 earthv = {0, 0, 0};
     float moonAngle = 1;
 
-	while(!glfwWindowShouldClose(window)){
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+    orbit startParams = createOrbit(currentState, earthPos);
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    int frames = 0;
+
+	while(!glfwWindowShouldClose(window)){
+		// glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        // glClear(GL_COLOR_BUFFER_BIT);
+
+        // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        orbit params = createOrbit(currentState, earthPos);
 
         mainview = rotateCamera(window, mainview, deltaTime);	
         mouseCameraOld oldpos = {mainview, float(x), float(y)};
@@ -275,7 +292,7 @@ int main(){
 	        input.clear();
 	        wmove(inputLine, 0, 0);
 	        wclrtoeol(inputLine);
-        }else if(key == KEY_BACKSPACE){
+        }else if(key == KEY_BACKSPACE && !input.empty()){
         	input.pop_back();
         	wdelch(inputLine);	
         }else if(key != ERR){
@@ -284,7 +301,7 @@ int main(){
         }
 
         //handle maneuvers
-		float newTime = glfwGetTime();
+		// float newTime = glfwGetTime();
 		glm::mat3 PRN = localCoords(currentState);
 
         glm::vec3 thrust = glm::vec3(0.0);
@@ -307,19 +324,26 @@ int main(){
 
 		// glm::vec3 a = gravForce(currentState) / mass + moonGrav(currentState, moonPos) / mass + drag(currentState) / mass;
 		// glm::vec3 a = (gravForce(currentState) + moonGrav(currentState, moonPos) + drag(currentState)) / mass;
-		glm::vec3 F = (gravForce(currentState) + moonGrav(currentState, moonPos) + drag(currentState) + thrust * mass);
-		// wmove(stdscr, 6, 0);
-		// clrtoeol();
-		// printw("%f %f %f", a.x, a.y, a.z);
-		currentState = movedt(currentState, STRacc(currentState, F), float(timewarp) * (newTime - time));
+		// glm::vec3 F = (gravForce(currentState) + moonGrav(currentState, moonPos) + drag(currentState) + thrust * mass);
+		for(int i = 0; i < timewarp; i++){
+			// wmove(stdscr, 7, 0);
+			// clrtoeol();
+			// printw("%d", frames);
+			glm::vec3 F = (gravForce(currentState, earthPos) +  0.f * thrust * mass);
+			currentState = movedt(currentState, NTacc(currentState, F), newTime - time);
+			// currentState = movedtRK4(currentState, newTime - time, earthPos, thrust);
+			earthPos = earthPos + earthv * (newTime - time) + 0.5f * F / earthMass * (newTime - time) * (newTime - time);
+			earthv = earthv + F / earthMass * (newTime - time);
+		}
 		// model = glm::translate(model, currentState.pos - oldState.pos);
 		if(isdv){
 			isdv = false;
 			if(dot(deltav, deltav) != 0.0)
 				currentState.rotate = PRN * normalize(deltav);
 		}
-		model = glm::mat4(1.0);
-		model = glm::translate(model, currentState.pos);
+		model = glm::mat4(1.f);
+		// model = glm::translate(model, currentState.pos);
+		// model = glm::scale(model, glm::vec3(0.01, 0.01, 0.01));
 		// model = glm::rotate(model, glm::radians(90.f), glm::vec3(0.0, 1.0, 0.0));
 		if(currentState.rotate == glm::vec3(-1.0, 0.0, 0.0))
 			model = glm::rotate(model, glm::radians(180.f), glm::vec3(0.0, 1.0, 0.0));
@@ -342,106 +366,157 @@ int main(){
 		printw("FPS %d", int(round(1 / (newTime - time))));
 		wmove(stdscr, 6, 0);
 		clrtoeol();
-        orbit params = createOrbit(currentState);
-		printw("Ap %.2f Per %.2f", params.mAxis * (1 + params.ecc) - 6400, params.mAxis * (1 - params.ecc) - 6400);
+		// printw("Ap %.2f Per %.2f", params.mAxis * (1 + params.ecc) - 6400, params.mAxis * (1 - params.ecc) - 6400);
+		printw("ascn %.2f, incl %.2f, argP %.2f, mAxis %.2f, ecc %.2f, tAnom %.2f", params.ascN, params.incl, params.argP, params.mAxis, params.ecc, params.tAnom);
+		// clrtoeol();
+		// wmove(stdscr, 7, 0);
+		// printw()
 
         wrefresh(stdscr);
         wrefresh(inputLine);
 
-		if(shipCamera){
-			mainview.target = currentState.pos;
-			if(!staticCamera){
-				mainview.up = glm::normalize(currentState.pos);
+        if(frames >= 100){
+        	frames = 0;
+
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	        glClear(GL_COLOR_BUFFER_BIT);
+
+	        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			if(shipCamera){
+				// mainview.target = currentState.pos;
+				mainview.target = {0, 0, 0};
+				if(!staticCamera){
+					mainview.up = glm::normalize(currentState.pos);
+					PRN = glm::mat3(1.0);
+				}else{
+					mainview.up = {0.0, 1.0, 0.0};
+					PRN = glm::mat3(1.0);
+				}
 			}else{
 				mainview.up = {0.0, 1.0, 0.0};
+				mainview.target = (currentState.pos * mass + earthPos * earthMass) / (mass + earthMass) - currentState.pos;
 				PRN = glm::mat3(1.0);
 			}
-		}else{
-			mainview.up = {0.0, 1.0, 0.0};
-			PRN = glm::mat3(1.0);
-		}
-		
-		time = newTime;
-       	glm::vec3 cameraPos = mainview.target + mainview.distance * PRN * cameraDir(mainview);
+			
+			// time = newTime;
+	       	glm::vec3 cameraPos = mainview.target + mainview.distance * PRN * cameraDir(mainview);
 
-		glm::mat4 view;
-		view = glm::lookAt(cameraPos, mainview.target, mainview.up);
+			glm::mat4 view;
+			view = glm::lookAt(cameraPos, mainview.target, mainview.up);
 
-		glUseProgram(shaderProgram);
+			glUseProgram(shaderProgram);
 
-		setMat4(shaderProgram, "model", model);
-		setMat4(shaderProgram, "view", view);
-		setMat4(shaderProgram, "projection", projection);
+			setMat4(shaderProgram, "model", model);
+			setMat4(shaderProgram, "view", view);
+			setMat4(shaderProgram, "projection", projection);
 
-		setVec3(shaderProgram, "viewPos", glm::normalize(cameraDir(mainview)));
+			setVec3(shaderProgram, "viewPos", glm::normalize(cameraDir(mainview)));
 
-		setFloat(shaderProgram, "material.shininess", 32.0f);
-		// std::cout << "drawing" << std::endl;
-		setMat3(shaderProgram, "normalmtr", glm::inverse(glm::mat3(model)), true);
-		// setVec3(shaderProgram, "velocity", currentState.pos);
+			setFloat(shaderProgram, "material.shininess", 32.0f);
+			// std::cout << "drawing" << std::endl;
+			setMat3(shaderProgram, "normalmtr", glm::inverse(glm::mat3(model)), true);
+			// setVec3(shaderProgram, "velocity", currentState.pos);
 
-		draw(shaderProgram, buran, normalMap);
+			draw(shaderProgram, buran);
 
-        //draw orbit
-        std::vector<glm::vec3> currentOrbit = orbitMesh(params, 500);
+	        //draw orbit
+	        // std::vector<glm::vec3> currentOrbit = orbitMesh(params, 500, (currentState.pos * mass + earthPos * earthMass) / (mass + earthMass) - currentState.pos);
+	        std::vector<glm::vec3> startOrbit = orbitMesh(startParams, 500, (currentState.pos * mass + earthPos * earthMass) / (mass + earthMass) - currentState.pos);
+	        // std::vector<glm::vec3> startOrbit = orbitMesh(startParams, 500, -currentState.pos);
 
-		glBindVertexArray(orbitVAO);
-    	glBindBuffer(GL_ARRAY_BUFFER, orbitVBO);
-		glBufferData(GL_ARRAY_BUFFER, currentOrbit.size() * sizeof(glm::vec3), currentOrbit.data(), GL_STREAM_DRAW);
+			// glBindVertexArray(orbitVAO);
+	    	// glBindBuffer(GL_ARRAY_BUFFER, orbitVBO);
+			// glBufferData(GL_ARRAY_BUFFER, currentOrbit.size() * sizeof(glm::vec3), currentOrbit.data(), GL_STREAM_DRAW);
 
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+			// glEnableVertexAttribArray(0);
+			// glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
 
-    	glUseProgram(orbitShader);
-    	setMat4(orbitShader, "view", view);
-    	setMat4(orbitShader, "projection", projection);
-    	setVec3(orbitShader, "cameraPos", cameraPos);
+	    	// glUseProgram(orbitShader);
+	    	// setMat4(orbitShader, "view", view);
+	    	// setMat4(orbitShader, "projection", projection);
+	    	// setVec3(orbitShader, "cameraPos", cameraPos);
+	    	// setVec3(orbitShader, "earthPos", earthPos - currentState.pos);
 
-		// glDrawArrays(params.ecc < 1 ? GL_LINE_LOOP : GL_LINE_STRIP, 0, currentOrbit.size());
-		glDrawArrays(GL_LINE_LOOP, 0, currentOrbit.size());
-		glBindVertexArray(0);
+			// // glDrawArrays(params.ecc < 1 ? GL_LINE_LOOP : GL_LINE_STRIP, 0, currentOrbit.size());
+			// glDrawArrays(GL_LINE_LOOP, 0, currentOrbit.size());
+			// glBindVertexArray(0);
 
 
-        // draw skybox as last
-        glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
-       	glUseProgram(skyboxShader); 
+			glBindVertexArray(orbitVAO);
+	    	glBindBuffer(GL_ARRAY_BUFFER, orbitVBO);
+			glBufferData(GL_ARRAY_BUFFER, startOrbit.size() * sizeof(glm::vec3), startOrbit.data(), GL_STREAM_DRAW);
 
-        view = glm::mat4(glm::mat3(view)); // remove translation from the view matrix
-        setMat4(skyboxShader, "view", view);
-        setMat4(skyboxShader, "projection", projection);
-        // setMat4(skyboxShader, "model", model);
-		setVec3(skyboxShader, "viewDir", glm::normalize(PRN * cameraDir(mainview)));
-		setVec3(skyboxShader, "cameraPos", cameraPos);
-		setFloat(skyboxShader, "angle", planetAngle);
-		setVec3(skyboxShader, "pos", currentState.pos);
-		setVec3(skyboxShader, "velocity", normalize(currentState.v));
-		setVec3(skyboxShader, "target", mainview.target);
-		setVec3(skyboxShader, "moonPos", moonPos);
-		// float moonAngle = moonPos.z >= 0 ? acos(glm::dot(normalize(moonPos), glm::vec3(1.0, 0.0, 0.0))) : - acos(glm::dot(normalize(moonPos), glm::vec3(1.0, 0.0, 0.0)));
-		setFloat(skyboxShader, "moonAngle", (moonPos.z >= 0 ? 1 : -1) * acos(glm::dot(normalize(moonPos), glm::vec3(1.0, 0.0, 0.0))));
-		// setFloat(skyboxShader, "moonAngle", moonAngle);
-		// setVec3(skyboxShader, "velocity", normalize(glm::vec3(0.0, 0.0, 1.0)));
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
 
-        // skybox cube
-        glBindVertexArray(skyboxVAO);
+	    	glUseProgram(orbitShader);
+	    	setMat4(orbitShader, "view", view);
+	    	setMat4(orbitShader, "projection", projection);
+	    	setVec3(orbitShader, "cameraPos", cameraPos);
+	    	setVec3(orbitShader, "earthPos", earthPos - currentState.pos);
 
-        glActiveTexture(GL_TEXTURE0);
-        // glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-        glBindTexture(GL_TEXTURE_2D, starsTexture);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, earthDay);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, earthNight);
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, earthSpec);
-        glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_2D, galaxy);
-        glActiveTexture(GL_TEXTURE5);
-        glBindTexture(GL_TEXTURE_2D, moon);
+			// glDrawArrays(params.ecc < 1 ? GL_LINE_LOOP : GL_LINE_STRIP, 0, currentOrbit.size());
+			glDrawArrays(GL_LINE_LOOP, 0, startOrbit.size());
+			glBindVertexArray(0);
 
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        glBindVertexArray(0);
-        glDepthFunc(GL_LESS); // set depth function back to default
+
+	        // draw skybox as last
+	        glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+	       	glUseProgram(skyboxShader); 
+
+	        view = glm::mat4(glm::mat3(view)); // remove translation from the view matrix
+	        setMat4(skyboxShader, "view", view);
+	        setMat4(skyboxShader, "projection", projection);
+	        // setMat4(skyboxShader, "model", model);
+			setVec3(skyboxShader, "viewDir", glm::normalize(PRN * cameraDir(mainview)));
+			setVec3(skyboxShader, "cameraPos", cameraPos);
+			setFloat(skyboxShader, "angle", planetAngle);
+			setVec3(skyboxShader, "pos", currentState.pos);
+			setVec3(skyboxShader, "velocity", normalize(currentState.v));
+			setVec3(skyboxShader, "target", mainview.target);
+			setVec3(skyboxShader, "moonPos", moonPos - currentState.pos);
+			setVec3(skyboxShader, "earthPos", earthPos - currentState.pos);
+			// float moonAngle = moonPos.z >= 0 ? acos(glm::dot(normalize(moonPos), glm::vec3(1.0, 0.0, 0.0))) : - acos(glm::dot(normalize(moonPos), glm::vec3(1.0, 0.0, 0.0)));
+			setFloat(skyboxShader, "moonAngle", (moonPos.z >= 0 ? 1 : -1) * acos(glm::dot(normalize(moonPos), glm::vec3(1.0, 0.0, 0.0))));
+			// setFloat(skyboxShader, "moonAngle", moonAngle);
+			// setVec3(skyboxShader, "velocity", normalize(glm::vec3(0.0, 0.0, 1.0)));
+
+	        // skybox cube
+	        glBindVertexArray(skyboxVAO);
+
+	        glActiveTexture(GL_TEXTURE0);
+	        // glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+	        glBindTexture(GL_TEXTURE_2D, starsTexture);
+	        glActiveTexture(GL_TEXTURE1);
+	        glBindTexture(GL_TEXTURE_2D, ceresTexture);
+	        // glBindTexture(GL_TEXTURE_2D, earthDay);
+	        // glActiveTexture(GL_TEXTURE2);
+	        // glBindTexture(GL_TEXTURE_2D, earthNight);
+	        // glActiveTexture(GL_TEXTURE3);
+	        // glBindTexture(GL_TEXTURE_2D, earthSpec);
+	        glActiveTexture(GL_TEXTURE2);
+	        glBindTexture(GL_TEXTURE_2D, galaxy);
+	        glActiveTexture(GL_TEXTURE3);
+	        glBindTexture(GL_TEXTURE_2D, moon);
+
+	        glDrawArrays(GL_TRIANGLES, 0, 36);
+	        glBindVertexArray(0);
+	        glDepthFunc(GL_LESS); // set depth function back to default
+
+			glfwSwapBuffers(window);
+			glfwPollEvents();
+	        newTime = glfwGetTime();
+	    }
+	    frames += 1;
+	    // usleep(1000);
+	    time = newTime;
+	    // deltaTime = glfwGetTime() - newTime;
+	    // newTime += deltaTime;
+	    // newTime = glfwGetTime();
+	    newTime += 0.0001;
+	    // time = newTime - 0.0001;
+
 
         // glUseProgram(planetShader);
 
@@ -450,8 +525,6 @@ int main(){
         // glDrawArrays(GL_TRIANGLES, 0, 6);
         // glBindVertexArray(0);
 
-		glfwSwapBuffers(window);
-		glfwPollEvents();
 	}
 
 	// glDeleteVertexArrays(1, &VAO);

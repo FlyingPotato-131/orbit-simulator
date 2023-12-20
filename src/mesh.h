@@ -13,7 +13,8 @@ struct vertex{
 
 struct texture{
 	unsigned int id;
-	bool type; //0 for diffuse, 1 for specular
+	// bool type; //0 for diffuse, 1 for specular
+	std::string type;
 	std::string path;
 };
 
@@ -82,7 +83,7 @@ mesh createMesh(std::vector<vertex> vertices, std::vector<unsigned int> indices,
 	return result;
 }
 
-void draw(const unsigned int &shader, mesh &object, const unsigned int normalMap){
+void draw(const unsigned int &shader, mesh &object){
 	unsigned int diffuseNr = 1;
 	unsigned int specularNr = 1;
 
@@ -92,25 +93,28 @@ void draw(const unsigned int &shader, mesh &object, const unsigned int normalMap
 		// retrieve texture number (the N in diffuse_textureN)
 		std::string number;
 		// string name = object.textures[i].type;
-		if(!object.textures[i].type)
+		if(object.textures[i].type == "diffuse")
 			number = std::to_string(diffuseNr++);
-		else
+		else if(object.textures[i].type == "surface")
 			number = std::to_string(specularNr++);
+		else
+			number = std::string("");
 
 		glBindTexture(GL_TEXTURE_2D, object.textures[i].id);
 		// glUseProgram(shader);
 		glBindVertexArray(object.VAO);
 		// setInt(shader, ("material." + std::string(!object.textures[i].type ? "diffuse" : "surface") + number).c_str(), object.textures[i].id - 1);
-		setInt(shader, ("material." + std::string(!object.textures[i].type ? "diffuse" : "surface") + number).c_str(), i);
+		// setInt(shader, ("material." + std::string(!object.textures[i].type ? "diffuse" : "surface") + number).c_str(), i);
+		setInt(shader, ("material." + object.textures[i].type + number).c_str(), i);
 		// setFloat(shader, "specular1", object.textures[i].id);
 		// std::cout << i << std::endl;
 		// std::cout << ("material." + std::string(!object.textures[i].type ? "diffuse" : "specular") + number).c_str() << std::endl;
 	}
 
-	glActiveTexture(GL_TEXTURE0 + object.textures.size());
-	glBindTexture(GL_TEXTURE_2D, normalMap);
-	glBindVertexArray(object.VAO);
-	setInt(shader, "material.normalMap", object.textures.size());
+	// glActiveTexture(GL_TEXTURE0 + object.textures.size());
+	// glBindTexture(GL_TEXTURE_2D, normalMap);
+	// glBindVertexArray(object.VAO);
+	// setInt(shader, "material.normalMap", object.textures.size());
 	// setInt(shader, "material.normalMap", 2);
 
 	// glActiveTexture(GL_TEXTURE1);
