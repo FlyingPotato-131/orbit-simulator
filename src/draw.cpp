@@ -329,7 +329,7 @@ int main(){
 			// wmove(stdscr, 7, 0);
 			// clrtoeol();
 			// printw("%d", frames);
-			glm::vec3 F = (gravForce(currentState, earthPos) +  0.f * thrust * mass);
+			glm::vec3 F = (gravForce(currentState, earthPos) +  thrust * mass);
 			currentState = movedt(currentState, NTacc(currentState, F), newTime - time);
 			// currentState = movedtRK4(currentState, newTime - time, earthPos, thrust);
 			earthPos = earthPos + earthv * (newTime - time) + 0.5f * F / earthMass * (newTime - time) * (newTime - time);
@@ -376,6 +376,7 @@ int main(){
         wrefresh(inputLine);
 
         if(frames >= 100){
+        // if(true){
         	frames = 0;
 
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -506,15 +507,15 @@ int main(){
 
 			glfwSwapBuffers(window);
 			glfwPollEvents();
-	        newTime = glfwGetTime();
 	    }
+        newTime = glfwGetTime();
 	    frames += 1;
 	    // usleep(1000);
 	    time = newTime;
 	    // deltaTime = glfwGetTime() - newTime;
 	    // newTime += deltaTime;
 	    // newTime = glfwGetTime();
-	    newTime += 0.0001;
+	    newTime += 0.001;
 	    // time = newTime - 0.0001;
 
 
